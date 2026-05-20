@@ -1,0 +1,15 @@
+# ESPHome / PlatformIO build output
+.esphome/
+.pioenvs/
+.piolibdeps/
+platformio.ini
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Python/cache artifacts if local helper scripts are added later
+__pycache__/
+*.py[cod]
