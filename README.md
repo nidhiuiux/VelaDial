@@ -15,6 +15,8 @@ VelaDial controls a group of Tuya RGB bulbs without relying on voice commands, c
 
 ```text
 .
+├── PROJECT_CONTEXT_FOR_AI.md
+├── AGENTS.md
 ├── docs/
 ├── esphome/
 └── hardware/
@@ -22,10 +24,29 @@ VelaDial controls a group of Tuya RGB bulbs without relying on voice commands, c
 
 ## Start here
 
-1. Read the files in `docs/` first.
-2. Confirm Home Assistant and local bulb control are working.
-3. Review the ESPHome YAML files before flashing hardware.
-4. Keep all credentials in ESPHome/Home Assistant `secrets.yaml`.
+For a coding assistant, paste or open `PROJECT_CONTEXT_FOR_AI.md` first. It contains the hardware selection, pinout, UI requirements, and next implementation target.
+
+For human review, read in this order:
+
+1. `PROJECT_CONTEXT_FOR_AI.md`
+2. `docs/01_PRD.md`
+3. `docs/02_TRD.md`
+4. `docs/03_App_Flow.md`
+5. `docs/04_UI_UX_Design_Brief.md`
+6. `docs/05_Backend_Schema.md`
+7. `docs/06_Implementation_Plan.md`
+8. `docs/07_Research_Alternatives.md`
+9. `esphome/`
+10. `hardware/`
+
+## Current firmware status
+
+The ESPHome files are starter bring-up configurations, not final production firmware.
+
+- `esphome/door_side_rotary.yaml` brings up the ELECROW display, touch, encoder, backlight, and basic LVGL page.
+- `esphome/bedside_gesture.yaml` brings up the ESP32-C6 + APDS-9960 gesture controller.
+
+The next major work item is upgrading the door-side YAML into the full 3-page LVGL UI described in `PROJECT_CONTEXT_FOR_AI.md`.
 
 ## Design principles
 
@@ -35,16 +56,6 @@ VelaDial controls a group of Tuya RGB bulbs without relying on voice commands, c
 - Small, reviewable firmware and documentation changes.
 - Useful for AI-assisted development, but still human-reviewed.
 
-## ESPHome secrets
+## Private configuration
 
-Create these in your local ESPHome `secrets.yaml`:
-
-```yaml
-wifi_ssid: "your_wifi_name"
-wifi_password: "your_wifi_password"
-fallback_ap_password: "temporary_setup_password"
-ota_key: "your_ota_password"
-encryption_key: "your_esphome_api_encryption_key"
-```
-
-Do not commit WiFi passwords, Tuya local keys, Home Assistant tokens, or generated ESPHome build output.
+Keep live WiFi credentials, API credentials, Tuya local keys, Home Assistant tokens, and generated ESPHome build output out of the repository. Store private values only in your local ESPHome/Home Assistant configuration.
