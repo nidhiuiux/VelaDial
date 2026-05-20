@@ -1,6 +1,6 @@
 # UI Concept Direction Matrix — ELECROW 1.28" Rotary Display
 
-This document explores 12 distinct UI direction concepts for the VelaDial door-side controller. It evaluates how each concept utilizes the 240x240 round display, touch, rotary knob, and LED ring, while respecting the constraints of a dark, silent, local-first bedroom environment.
+This document explores 20 distinct UI direction concepts for the VelaDial door-side controller. It evaluates how each concept utilizes the 240x240 round display, touch, rotary knob, and LED ring, while respecting the constraints of a dark, silent, local-first bedroom environment.
 
 ---
 
@@ -336,3 +336,19 @@ This decision will be finalized after visual mockups and initial user testing.
 *   **Risk on 240x240:** Medium.
 *   **ESPHome/LVGL Feasibility:** Medium (using radial gradients or image sequences).
 *   **Include in Visual Batch:** Yes.
+
+---
+
+## Research Notes
+
+The concepts in this matrix, particularly concepts 13-20, are inspired by broad UI research across non-smart-home domains. They represent experimental directions not commonly seen in typical lighting controllers.
+
+Research categories explored include:
+- Smartwatch UI patterns (Wear OS, watchOS, Garmin)
+- Automotive rotary controllers (iDrive, MMI, MBUX)
+- Industrial HMI circular gauges
+- Audio equipment and DJ interfaces
+- Natural phenomena and generative art
+- Sci-fi HUDs and experimental interfaces
+
+These concepts are designed to push the boundaries of what a 240x240 round display can do, adapting ideas from these diverse fields into the constraints of a bedroom light controller.
