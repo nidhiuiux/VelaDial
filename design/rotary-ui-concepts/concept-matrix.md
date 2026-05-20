@@ -208,3 +208,131 @@ This decision will be finalized after visual mockups and initial user testing.
 *   **Risk on 240x240:** Medium (awkward layout).
 *   **ESPHome/LVGL Feasibility:** Easy.
 *   **Include in Visual Batch:** Yes (as a contrasting option).
+
+## Concept 13: Tidal/Lunar Phase Visualization (Novelty: 9)
+
+*   **Short Description:** Uses the moon phase as a natural, intuitive metaphor for brightness level on a round display.
+*   **Main Screen Layout:** A central moon graphic that transitions through its phases (new moon to full moon).
+*   **Page Structure:** 2-page (Lunar Brightness / Presets).
+*   **Best Interaction Model:** Knob-first.
+*   **Knob Rotation:** Adjusts the moon phase. A new moon represents 0% brightness (off), while a full moon represents 100%.
+*   **Knob Press:** Toggles power (jumps between new and full moon).
+*   **Touch:** Swipe to access presets.
+*   **LED Ring:** Amber glow when on.
+*   **Pros:** Extremely intuitive and calming. Perfect for a bedroom environment. No numbers needed.
+*   **Cons:** Harder to set an exact percentage if desired.
+*   **Risk on 240x240:** Low. A moon graphic scales well.
+*   **ESPHome/LVGL Feasibility:** Medium (requires pre-rendered image sequence or custom drawing).
+*   **Include in Visual Batch:** Yes.
+
+## Concept 14: Sundial Shadow UI (Novelty: 9)
+
+*   **Short Description:** A time-of-day aware UI where a digitally rendered central gnomon casts a dynamic shadow that rotates based on the time of day.
+*   **Main Screen Layout:** A central "pin" casting a shadow across the circular face.
+*   **Page Structure:** 1-page (Contextual).
+*   **Best Interaction Model:** Touch nav + knob adjust.
+*   **Knob Rotation:** Adjusts brightness, but the baseline is set by the "time" indicated by the shadow.
+*   **Knob Press:** Toggles power.
+*   **Touch:** Tap to override the time-based suggestion.
+*   **LED Ring:** Amber when on.
+*   **Pros:** Highly contextual and unique. Connects indoor lighting to the natural world.
+*   **Cons:** Might be confusing if the user just wants a simple dimmer.
+*   **Risk on 240x240:** Medium.
+*   **ESPHome/LVGL Feasibility:** Medium.
+*   **Include in Visual Batch:** Yes.
+
+## Concept 15: Tree Ring Growth Pattern (Novelty: 9)
+
+*   **Short Description:** Concentric rings radiating from the center, mimicking a tree cross-section, where rings represent saved scenes or brightness history.
+*   **Main Screen Layout:** Organic concentric rings.
+*   **Page Structure:** 2-page (Rings / Presets).
+*   **Best Interaction Model:** Knob-first.
+*   **Knob Rotation:** Expands or contracts the rings to adjust brightness.
+*   **Knob Press:** Toggles power.
+*   **Touch:** Tap specific rings to recall past states.
+*   **LED Ring:** Amber when on.
+*   **Pros:** Organic, non-technical aesthetic.
+*   **Cons:** Might be too abstract for quick use.
+*   **Risk on 240x240:** Medium.
+*   **ESPHome/LVGL Feasibility:** Medium.
+*   **Include in Visual Batch:** Yes.
+
+## Concept 16: Topographic Contour Map (Novelty: 9)
+
+*   **Short Description:** Elevation lines represent brightness levels on a circular terrain.
+*   **Main Screen Layout:** Stylized topographic map lines.
+*   **Page Structure:** 2-page.
+*   **Best Interaction Model:** Knob-first.
+*   **Knob Rotation:** "Climbs" or "descends" the terrain. As the dial turns clockwise, the UI highlights higher elevation lines (brighter).
+*   **Knob Press:** Toggles power.
+*   **Touch:** Swipe for presets.
+*   **LED Ring:** Amber when on.
+*   **Pros:** Visually striking and unique.
+*   **Cons:** Abstract representation of brightness.
+*   **Risk on 240x240:** Medium.
+*   **ESPHome/LVGL Feasibility:** Medium.
+*   **Include in Visual Batch:** Yes.
+
+## Concept 17: Iris Aperture Mechanism (Novelty: 9)
+
+*   **Short Description:** A photorealistic or stylized camera iris mechanism that opens/closes to represent brightness.
+*   **Main Screen Layout:** Overlapping iris blades.
+*   **Page Structure:** 2-page.
+*   **Best Interaction Model:** Knob-first.
+*   **Knob Rotation:** Smoothly opens or closes the iris blades. Wide open = 100% brightness.
+*   **Knob Press:** Toggles power.
+*   **Touch:** Swipe for presets.
+*   **LED Ring:** Amber when on.
+*   **Pros:** Very satisfying mechanical metaphor for light control.
+*   **Cons:** Requires smooth animation to look good.
+*   **Risk on 240x240:** Medium.
+*   **ESPHome/LVGL Feasibility:** Medium (using image sequences).
+*   **Include in Visual Batch:** Yes.
+
+## Concept 18: Radar Sweep Animation (Novelty: 9)
+
+*   **Short Description:** A rotating line reveals the current state as it sweeps around, acting as both an idle animation and an interactive control.
+*   **Main Screen Layout:** Dark screen with a sweeping radar line.
+*   **Page Structure:** 2-page.
+*   **Best Interaction Model:** Knob-first.
+*   **Knob Rotation:** The sweeping line follows the rotation of the knob, leaving a "trail" that represents the brightness level.
+*   **Knob Press:** Toggles power.
+*   **Touch:** Swipe for presets.
+*   **LED Ring:** Amber when on.
+*   **Pros:** Dynamic and engaging.
+*   **Cons:** Constant motion might be distracting in a bedroom if not dimmed properly.
+*   **Risk on 240x240:** Low.
+*   **ESPHome/LVGL Feasibility:** Medium.
+*   **Include in Visual Batch:** Yes.
+
+## Concept 19: Vinyl DJ Crossfader (Novelty: 9)
+
+*   **Short Description:** The left and right hemispheres of the screen display different light scenes, and the knob acts as a crossfader between them.
+*   **Main Screen Layout:** Split screen with a central draggable thumb.
+*   **Page Structure:** 1-page.
+*   **Best Interaction Model:** Knob-first.
+*   **Knob Rotation:** Blends between the two scenes (e.g., Warm White on left, Nightlight on right).
+*   **Knob Press:** Toggles power.
+*   **Touch:** Tap hemispheres to change the assigned scene.
+*   **LED Ring:** Amber when on.
+*   **Pros:** Excellent for mood blending rather than just dimming.
+*   **Cons:** More complex to set up initially.
+*   **Risk on 240x240:** Medium.
+*   **ESPHome/LVGL Feasibility:** Medium.
+*   **Include in Visual Batch:** Yes.
+
+## Concept 20: Eclipse Corona (Novelty: 9)
+
+*   **Short Description:** A solar eclipse visualization where brightness controls how much corona is visible around a central dark moon.
+*   **Main Screen Layout:** Central black circle surrounded by a glowing, dynamic corona.
+*   **Page Structure:** 2-page.
+*   **Best Interaction Model:** Knob-first.
+*   **Knob Rotation:** Increases the intensity and spread of the corona effect.
+*   **Knob Press:** Toggles power.
+*   **Touch:** Swipe for presets.
+*   **LED Ring:** Amber when on.
+*   **Pros:** Beautiful, natural metaphor for light. Keeps the center of the screen dark (good for OLED/IPS at night).
+*   **Cons:** Requires good rendering to look organic.
+*   **Risk on 240x240:** Medium.
+*   **ESPHome/LVGL Feasibility:** Medium (using radial gradients or image sequences).
+*   **Include in Visual Batch:** Yes.
