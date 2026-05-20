@@ -5,8 +5,8 @@ This project does not have a conventional web-app backend. Home Assistant is the
 ## Architecture
 
 ```text
-Door-side ESPHome dial
-Bedside ESPHome sensor
+Door-side ESPHome dial (ESP32-S3)
+Bedside ESPHome sensor (ESP32-C6)
         ↓ WiFi LAN
 Home Assistant
         ↓ local LAN integration
@@ -14,6 +14,26 @@ Tuya RGB bulbs
 ```
 
 The ESPHome nodes are mostly stateless. They send user intent to Home Assistant and optionally display the current state.
+
+## I2C bus architecture
+
+Each ESPHome node has its own independent I2C bus. Sensors are connected via STEMMA QT / Qwiic daisy-chain within each node.
+
+### Door-side node I2C bus
+
+| Sensor | I2C Address | ESPHome Platform | Entity Type |
+| :--- | :--- | :--- | :--- |
+| TSL2591 | `0x29` | `tsl2591` (native) | Sensor (lux) |
+| SHT45 | `0x44` | `sht4x` (native) | Sensor (temperature, humidity) |
+
+### Bedside node I2C bus
+
+| Sensor | I2C Address | ESPHome Platform | Entity Type |
+| :--- | :--- | :--- | :--- |
+| APDS-9960 | `0x39` | `apds9960` (native) | Binary sensor (gestures), sensor (proximity) |
+| VL53L4CD | `0x29` | Needs verification | Sensor (distance in mm) |
+
+TSL2591 and VL53L4CD both use address `0x29` but are on different ESP32 nodes, so there is no conflict in the first-build architecture.
 
 ## Home Assistant lighting model
 
@@ -36,7 +56,7 @@ Reason for grouping:
 
 ## ESPHome entities
 
-### Door-side dial
+### Door-side dial (ESP32-S3)
 
 Expected entities:
 
@@ -45,14 +65,18 @@ Expected entities:
 - Touch wake event.
 - Backlight control.
 - Optional LED ring light entity.
+- `sensor.room_ambient_light` — TSL2591 lux reading. Used internally for adaptive backlight PWM and exposed to Home Assistant for dashboard/automations.
+- `sensor.room_temperature` — SHT45 temperature in °C. Exposed to Home Assistant for dashboard display and future automations.
+- `sensor.room_humidity` — SHT45 relative humidity in %. Exposed to Home Assistant for dashboard display and future automations.
 
-### Bedside gesture node
+### Bedside gesture node (ESP32-C6)
 
 Expected entities:
 
-- Left gesture sensor.
-- Right gesture sensor.
-- Proximity sensor.
+- Left gesture binary sensor.
+- Right gesture binary sensor.
+- Proximity sensor (APDS-9960).
+- `sensor.bedside_distance` — VL53L4CD distance reading in mm. Used internally for hand-hold nightlight detection and exposed to Home Assistant for diagnostics.
 
 Exact generated names depend on ESPHome naming and friendly-name settings.
 
@@ -62,8 +86,15 @@ Initial Home Assistant actions:
 
 - Turn the group off for a left gesture.
 - Turn the group on for a right gesture.
-- Turn the group on at low brightness for nightlight.
+- Turn the group on at low brightness and warm color for nightlight (triggered by VL53L4CD hand-hold at 5–10 cm for 1.5 s).
 - Set brightness from the rotary control.
+
+### Sensor-driven local behaviors (internal to ESPHome, not HA actions)
+
+- TSL2591 lux reading → door-side backlight PWM adjustment (adaptive brightness).
+- VL53L4CD distance → APDS-9960 wake trigger (sensor fusion on bedside node).
+
+These behaviors run inside the ESPHome firmware and do not require Home Assistant round-trips.
 
 ## Sensitive data
 
@@ -78,3 +109,7 @@ Do not commit live WiFi credentials, API credentials, Home Assistant tokens, Tuy
 - Color presets.
 - Rotary encoder direction.
 - Touch transform settings.
+- TSL2591 lux-to-backlight mapping curve.
+- VL53L4CD hand-hold distance threshold (default: 5–10 cm).
+- VL53L4CD hand-hold duration threshold (default: 1.5 s).
+- SHT45 update interval.
