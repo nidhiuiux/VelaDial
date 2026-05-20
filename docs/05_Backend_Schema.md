@@ -112,6 +112,40 @@ These are not raw sensor readings. They are computed states derived from sensor 
 
 These Home Assistant template entities are optional and not required for the first build. They are documented here for future expansion.
 
+### Example Home Assistant/template entity names
+
+The following table lists the expected entity IDs as they will appear in Home Assistant after ESPHome integration. Actual names depend on ESPHome `name:` and `friendly_name:` settings, but these are the recommended defaults.
+
+#### Door-side node entities (ESPHome device name: `veladial_doorside`)
+
+| Entity ID | Type | Source | Update Rate | Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| `sensor.veladial_doorside_ambient_light` | sensor | TSL2591 | 2 s | Lux value, 0–88000 range |
+| `sensor.veladial_doorside_temperature` | sensor | SHT45 | 30 s | °C, ±0.1° accuracy |
+| `sensor.veladial_doorside_humidity` | sensor | SHT45 | 30 s | %, ±1% accuracy |
+| `sensor.veladial_doorside_backlight_level` | sensor | Internal | On change | Current backlight PWM % |
+| `binary_sensor.veladial_doorside_display_awake` | binary_sensor | Internal | On change | Whether display is active |
+| `sensor.veladial_doorside_wifi_signal` | sensor | WiFi | 60 s | dBm signal strength |
+
+#### Bedside node entities (ESPHome device name: `veladial_bedside`)
+
+| Entity ID | Type | Source | Update Rate | Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| `binary_sensor.veladial_bedside_gesture_left` | binary_sensor | APDS-9960 | On event | Momentary pulse on left swipe |
+| `binary_sensor.veladial_bedside_gesture_right` | binary_sensor | APDS-9960 | On event | Momentary pulse on right swipe |
+| `sensor.veladial_bedside_proximity` | sensor | APDS-9960 | 200 ms | Raw proximity 0–255 |
+| `sensor.veladial_bedside_distance` | sensor | VL53L4CD | 200 ms | Distance in mm, 0–1300 range |
+| `binary_sensor.veladial_bedside_hand_present` | binary_sensor | VL53L4CD (derived) | On change | Hand detected within 300 mm |
+| `binary_sensor.veladial_bedside_hand_holding` | binary_sensor | VL53L4CD (derived) | On change | Hand held at 50–100 mm for > 1.5 s |
+| `sensor.veladial_bedside_wifi_signal` | sensor | WiFi | 60 s | dBm signal strength |
+
+#### Home Assistant template entities (optional, configured in HA not ESPHome)
+
+| Entity ID | Type | Template Logic | Required for First Build |
+| :--- | :--- | :--- | :--- |
+| `binary_sensor.bedroom_occupied` | binary_sensor | `true` if any bedside interaction in last 30 min | No |
+| `sensor.bedroom_comfort_index` | sensor | Heat index from temperature + humidity | No |
+
 ## Actions
 
 Initial Home Assistant actions:
