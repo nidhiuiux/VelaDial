@@ -80,6 +80,38 @@ Expected entities:
 
 Exact generated names depend on ESPHome naming and friendly-name settings.
 
+## Derived entities and logic states
+
+These are not raw sensor readings. They are computed states derived from sensor data, used to drive UI behavior, automations, or firmware logic.
+
+### Door-side node derived states
+
+| Derived State | Source | Logic | Used By |
+| :--- | :--- | :--- | :--- |
+| `display_brightness_target` | TSL2591 lux | Lux-to-PWM mapping curve. Low lux (< 5) → backlight at 10%. High lux (> 200) → backlight at 100%. Smooth interpolation between. | Backlight PWM output |
+| `ambient_mode` | TSL2591 lux | `dark` if lux < 5, `dim` if 5–50, `bright` if > 50. | UI contrast/accent adaptation, LED ring intensity |
+| `display_awake` | Touch event, rotary event, or timer | `true` after any input. Reverts to `false` after idle timeout (default: 60 s). | Backlight on/off, LVGL page visibility |
+| `idle_timer` | Last input timestamp | Counts seconds since last user interaction. Resets on any touch, rotation, or press. | Display sleep logic |
+
+### Bedside node derived states
+
+| Derived State | Source | Logic | Used By |
+| :--- | :--- | :--- | :--- |
+| `hand_present` | VL53L4CD distance | `true` if distance < 300 mm for > 100 ms. `false` otherwise. | APDS-9960 wake trigger |
+| `hand_holding` | VL53L4CD distance + timer | `true` if distance is 50–100 mm continuously for > 1.5 s. | Nightlight scene trigger |
+| `gesture_ready` | `hand_present` state | `true` when `hand_present` is `true` and APDS-9960 is powered up and ready to detect. | Gesture detection gate |
+| `nightlight_triggered` | `hand_holding` transition | One-shot `true` on rising edge of `hand_holding`. Resets after action is sent. Cooldown of 5 s prevents re-trigger. | HA service call: nightlight scene |
+| `gesture_cooldown` | Last gesture timestamp | Blocks new gesture detection for 1 s after a successful gesture to prevent double-fires. | Gesture debounce |
+
+### Home Assistant derived entities (optional, created via template sensors)
+
+| Entity | Source | Logic | Purpose |
+| :--- | :--- | :--- | :--- |
+| `binary_sensor.bedroom_occupied` | VL53L4CD activity + gesture history | `true` if any bedside interaction in the last 30 minutes. | Future automations (auto-off after leaving) |
+| `sensor.bedroom_comfort_index` | SHT45 temperature + humidity | Simple comfort formula (e.g., heat index or PMV approximation). | Dashboard display, future HVAC hints |
+
+These Home Assistant template entities are optional and not required for the first build. They are documented here for future expansion.
+
 ## Actions
 
 Initial Home Assistant actions:
