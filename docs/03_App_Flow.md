@@ -174,6 +174,51 @@ SHT45 measures room temperature and humidity on the door-side node.
 - Sensor failure must not cause full-brightness light changes.
 - Fail quietly and recover automatically when sensor returns.
 
+## Connectivity and outage behavior
+
+VelaDial is local-first. Normal control runs over the local LAN through Home Assistant and LocalTuya. The following describes user-visible behavior when parts of that path are unavailable. Infrastructure setup recommendations (router, WiFi, UPS, static DHCP, etc.) live in `docs/02_TRD.md`, not here.
+
+### Internet / ISP outage
+
+- If the local WiFi / LAN, Raspberry Pi, Home Assistant, and LocalTuya are all healthy, normal VelaDial control should continue without change.
+- The user should not see a special "internet offline" state for normal local control.
+- No cloud dependency is added; internet outage by itself is not a user-visible failure mode.
+
+### WiFi / router / AP / LAN instability
+
+- If ESP32 nodes, the Raspberry Pi, or the Tuya bulbs disconnect from the local LAN, light commands may not reach the bulbs.
+- The door-side display should not pretend a command succeeded if Home Assistant does not confirm the new state.
+- The bedside controller may provide local status LED feedback that the gesture or button was detected, but the bulb action still depends on the LAN / Home Assistant path.
+- The system should recover quietly when the LAN returns. No loud error chimes, no flashing animations, no startup popups.
+
+### Home Assistant / Raspberry Pi unavailable
+
+- Door-side controls (touch, knob rotation, knob press) may still wake and navigate the display locally, but light commands may fail.
+- Bedside gestures may still be detected locally, but the corresponding bulb commands may fail.
+- The UI should show a simple offline / unavailable state when it can — for example, dim the power indicator, gray out brightness percentage, or show a brief "unavailable" label — rather than display false-success state.
+- Avoid repeated command spam while Home Assistant is unavailable. Retry with backoff, not on every input.
+- Recover automatically when Home Assistant returns. Do not require the user to do anything.
+
+### Door-side behavior notes (when state is uncertain)
+
+- User input while the display is asleep wakes the display first; the second deliberate action toggles power or sends a command (see "Wake behavior clarification" above).
+- If Home Assistant state is unavailable, show the last known state cautiously, or show "unavailable" rather than display false success.
+- Update the UI optimistically only when safe (for example, the brightness arc may move with the encoder immediately), then reconcile with the Home Assistant state when it returns.
+- If a command confirmation fails, avoid flashing or noisy error behavior; a small inline indicator is enough.
+
+### Bedside behavior notes (when HA is unavailable)
+
+- Local gesture detection can still happen even if Home Assistant is unavailable; the ESP32 sees and decodes the gesture.
+- An optional status LED can acknowledge "gesture detected" locally so the user knows the input registered, independent of whether the bulb action eventually succeeds.
+- Do not imply that bulbs changed unless the Home Assistant command succeeded. The status LED is about input registration, not bulb confirmation.
+- Cooldowns remain active even during Home Assistant failure to prevent command spam from rapid gesture re-tries.
+
+### Manual wall switch
+
+- A manual wall switch on the bulb circuit is the only simple true "everything is broken" fallback. It works regardless of which part of the stack has failed.
+- The wall switch is outside firmware and outside the app flow. It lives at the wall.
+- Relay or mains-control hardware on the ESP32 is **not** part of the first-build firmware.
+
 ## Error handling
 
 - Ignore unclear gestures instead of guessing.
