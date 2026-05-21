@@ -11,12 +11,12 @@ Door-side:
   → LVGL display + backlight behavior
   → Home Assistant light commands when needed
 
-Bedside:
-  VL53L4CD hand distance
-  → Arm APDS-9960 or detect hold
-  → Gesture / nightlight decision
-  → Home Assistant light command
-  → Bedroom light group
+Bedside (v1):
+  APDS-9960 directional gesture        →  Home Assistant light command  →  Bedroom light group
+  VL53L4CD hand-hold (≈5–10 cm, ≈1.5 s) →  Home Assistant nightlight cmd →  Bedroom light group
+
+Bedside sensor fusion (v2 / future):
+  VL53L4CD distance arms or refines APDS-9960 gesture detection (not required for v1)
 ```
 
 ## Door-side rotary display
@@ -26,6 +26,17 @@ The main door-side UI has exactly 3 primary pages:
 1. Power
 2. Brightness
 3. Presets
+
+The main UI stays exactly 3 pages — Power, Brightness, Presets. There is **no** 4th Environment page in the first build.
+
+### Page navigation
+
+- Horizontal swipe navigates between pages.
+- Left swipe moves to the next page (Power → Brightness → Presets → Power).
+- Right swipe moves to the previous page.
+- A small 3-dot page indicator appears near the bottom of the round screen.
+- The active page's dot is amber; inactive dots are white at low contrast.
+- No 4th Environment page on the main UI.
 
 ### Default screen: Power
 
@@ -62,20 +73,24 @@ Recommended first-build behavior:
 
 Purpose: choose simple room moods without a full color picker.
 
-Initial presets:
+First-build presets (locked, exactly 4):
 
-- Warm white.
-- Soft amber.
-- Neutral white.
-- Low nightlight.
-- Optional RGB accent preset.
+1. Warm White
+2. Soft Amber
+3. Neutral White
+4. Low Nightlight
 
-Flow:
+Layout and behavior:
 
-1. User opens the preset screen.
-2. User taps a preset.
-3. Home Assistant applies the preset to the light group.
-4. Display briefly confirms the selected preset.
+- Display as 4 large touch targets in a 2×2 grid on the round screen.
+- Tap a preset to apply it to the bedroom light group.
+- The currently active preset is highlighted with an amber border.
+- Display briefly confirms the selected preset.
+
+Out of first-build scope:
+
+- Optional RGB accent preset is deferred to a future / v2 build.
+- No dense color picker, color wheel, or per-bulb color editor in first build.
 
 ### Idle and sleep behavior
 
@@ -85,10 +100,23 @@ Flow:
 
 ### Wake behavior clarification
 
-- Touch and knob rotation while display is asleep should wake the screen first.
-- Whether physical knob press toggles power while asleep remains a design decision to test.
+This behavior is locked for the first build:
+
+- **Touch while asleep:** wake only.
+- **Knob rotation while asleep:** wake only.
+- **Knob press while asleep:** wake only.
+- A second deliberate action while the display is awake is what toggles or sends a command.
 - Avoid accidental room-light changes from bumps.
 - Bedroom safety is more important than shortcut speed.
+
+### Knob press behavior per page
+
+These behaviors apply only when the display is already awake.
+
+- **Power page:** knob press toggles the bedroom light group (same as tapping the center).
+- **Brightness page:** knob press returns to the Power page.
+- **Presets page:** knob press applies the currently highlighted preset.
+- **While asleep:** knob press wakes the display only; it does not toggle, apply, or navigate.
 
 ### Adaptive display brightness flow
 
@@ -108,52 +136,47 @@ Flow:
 
 The bedside node has no screen. It should behave like a quiet physical shortcut.
 
-### Bedside sensor-fusion gesture flow
+### Bedside gesture flow (v1)
 
-VL53L4CD monitors distance near the bedside sensor. It improves presence/distance reliability. APDS-9960 remains responsible for directional gestures.
+In the first build, APDS-9960 handles directional gestures on its own. VL53L4CD does **not** arm or gate the gesture sensor in v1.
 
-Flow:
+- **Left gesture** (wave left over the APDS-9960 sensor): turns the bedroom light group off.
+- **Right gesture** (wave right over the sensor): turns the bedroom light group on.
+- A cooldown (about 1 s) blocks further gestures after a successful gesture to prevent repeat-fire.
+- Unclear, ambiguous, or noisy gesture reads are ignored; APDS-9960 misses are expected in real-world use.
+- Mounting and ambient lighting (sunlight, IR sources) affect reliability; see `docs/02_TRD.md` sensor timing notes.
 
-1. VL53L4CD monitors distance near the bedside sensor.
-2. Hand enters configured range = hand_near / hand_present.
-3. Hand-near arms or wakes APDS-9960 gesture detection.
-4. APDS-9960 reads directional gesture.
-5. Valid left gesture turns bedroom group off.
-6. Valid right gesture turns bedroom group on.
-7. Cooldown prevents repeated triggers.
-8. If no valid gesture is detected after timeout, return to idle.
+### ToF nightlight hold flow (v1)
 
-### ToF-based nightlight hold flow
+VL53L4CD handles deliberate hand-hold detection on its own in the first build. It does **not** arm APDS-9960.
 
-User holds hand near bedside sensor to trigger a low warm nightlight without directional gestures.
+- **Trigger:** hand stable in the 5–10 cm range above the bedside sensor.
+- **Hold duration:** continuous in-range for about 1.5 s.
+- **Hand-near debounce:** require the hand to be in range for at least about 200 ms before the 1.5 s hold timer starts. Prevents quick pass-by motion from starting the timer.
+- **Cooldown:** about 5 s after a successful trigger before another nightlight trigger is possible.
+- **Action on trigger:** Home Assistant turns the bedroom group on at a low warm nightlight (about 10 % brightness, warm color).
+- **Quick pass-by motion must not trigger.**
+- **Hand moves away before hold completes:** no action; the hold timer resets.
 
-Flow:
+**Sensor support note for VL53L4CD.** VL53L4CD ESPHome support is unverified and must be confirmed before production firmware. If support becomes blocked during validation, evaluate **VL53L0X** as a verified ESPHome-supported ToF fallback only after explicit owner approval. VL53L0X has a higher minimum range than VL53L4CD, so the 5–10 cm hold threshold would need to be re-tuned. VL53L0X is **not** the selected default — VL53L4CD remains the planned sensor.
 
-1. User holds hand near bedside sensor.
-2. VL53L4CD detects stable distance around 5–10 cm.
-3. ESPHome starts hold timer.
-4. If hand remains steady for about 1.5 seconds, bedside_nightlight_hold becomes active.
-5. Home Assistant receives nightlight command.
-6. Bedroom group turns on warm color at about 10% brightness.
-7. Cooldown prevents repeated nightlight triggers.
-8. If hand moves away before hold time, no action happens.
-9. Quick pass-by motion must not trigger nightlight.
+### Bedside sensor fusion (v2 / future)
 
-### Turn off (gesture)
+Sensor fusion is **not** part of the first build. It is described here only as a future enhancement path.
 
-1. Hand enters range, VL53L4CD arms APDS-9960.
-2. User waves left over the APDS-9960 sensor.
-3. ESPHome receives a clean left gesture.
-4. Home Assistant turns off the light group.
-5. Cooldown blocks further gestures for 1 second.
+- VL53L4CD distance reading could be used to arm, wake, or refine APDS-9960 gesture detection — for example, only accepting APDS-9960 gesture events while VL53L4CD reports a hand within an arming range.
+- Fusion should only be added after both APDS-9960 standalone gestures (v1) and VL53L4CD standalone hold (v1) are independently verified to work reliably in the actual bedside mounting.
+- See `docs/08_Sensor_Expansion_Research.md` for the broader fusion design discussion.
 
-### Turn on (gesture)
+### Bedside status LED behavior (optional, v1)
 
-1. Hand enters range, VL53L4CD arms APDS-9960.
-2. User waves right over the sensor.
-3. ESPHome receives a clean right gesture.
-4. Home Assistant turns on the light group.
-5. Cooldown blocks further gestures for 1 second.
+An optional small status LED on the bedside controller provides silent local feedback. This is optional first-build hardware, not a required addition.
+
+- **1 blink:** input detected (gesture or button registered locally by the ESP32).
+- **2 blinks:** nightlight hold triggered.
+- The status LED does **not** confirm bulb state. Bulb state is shown by the bulbs themselves. The LED only confirms that the ESP32 saw the input.
+- v1 does **not** use a steady or pulsing offline-status LED. A constantly lit LED on a bedside device causes light pollution in a dark bedroom, which contradicts the project's bedroom-safe principle.
+- Offline / unavailable status belongs primarily on the door-side display, not on a constantly lit bedside LED.
 
 ## Environmental diagnostics flow
 
