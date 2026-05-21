@@ -31,13 +31,11 @@ These are deployment recommendations to keep the LAN reliable. They reduce the l
 - Use a stable 2.4 GHz IoT SSID for the Tuya bulbs and ESP32 devices. Both ESP32-S3 and ESP32-C6 use 2.4 GHz WiFi; Tuya bulbs are typically 2.4 GHz only.
 - Avoid band steering / Smart Connect on the IoT SSID if it causes instability. IoT devices and dual-band APs do not always negotiate well.
 - Use WPA2 2.4 GHz compatibility mode if needed for older Tuya bulb firmware. WPA3-only or mixed WPA2/WPA3 with PMF-required can confuse some IoT devices.
-- Reserve static DHCP leases in the router for:
+- Reserve static DHCP leases in the router (to avoid IP churn that breaks LocalTuya and ESPHome connections) for:
   - Raspberry Pi / Home Assistant
   - door-side ESP32-S3
   - bedside ESP32-C6
   - each Tuya bulb
-
-  Static leases avoid IP churn that breaks LocalTuya and ESPHome connections.
 - Keep control local through Home Assistant + LocalTuya / local LAN. Do not add cloud dependency for normal control.
 
 ### Optional future network improvements
