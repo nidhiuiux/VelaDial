@@ -59,12 +59,30 @@ Touch should be reserved for major actions:
 
 The display should dim after inactivity. Waking the display should not accidentally change light state unless the user performs a deliberate second action.
 
+### Page navigation
+
+- Horizontal swipe navigates between pages.
+- Left swipe = next page (Power → Brightness → Presets → Power).
+- Right swipe = previous page.
+- A 3-dot page indicator appears near the bottom of the round screen.
+- The active page's dot is amber; inactive dots are low-contrast white.
+- There is **no** 4th Environment page in the first build.
+
+### Knob press behavior per page
+
+Knob press is page-specific and applies only when the display is awake:
+
+- **Power page:** knob press toggles the bedroom light group (same as tapping the center).
+- **Brightness page:** knob press returns to the Power page.
+- **Presets page:** knob press applies the currently highlighted preset.
+- **While asleep:** knob press wakes only.
+
 ## UI screens
 
 ### Power
 
 - Large central power symbol or state label.
-- Small status text: On / Off / Offline.
+- Small status text: On / Off / Unavailable.
 - Optional amber ring when lights are on.
 
 ### Brightness
@@ -75,9 +93,23 @@ The display should dim after inactivity. Waking the display should not accidenta
 
 ### Presets
 
-- Few large touch targets.
-- No dense grid.
-- Clear active preset indication.
+First-build presets are locked to exactly 4:
+
+1. Warm White
+2. Soft Amber
+3. Neutral White
+4. Low Nightlight
+
+Layout:
+
+- 2×2 large touch targets on the 240×240 round screen.
+- Each tile sized for thumb-tap; tiles stay inside the inscribed area so corners are not cut off by the round bezel.
+- Active preset is highlighted with an amber border (or equivalent amber highlight).
+
+Out of first-build scope:
+
+- Optional RGB accent preset is future / v2 only.
+- No dense color picker, color wheel, or per-bulb editor in first build.
 
 ## Ambient-aware display behavior
 
@@ -102,6 +134,8 @@ The UI layout should not change dramatically between modes; only brightness/inte
 
 ## LED ring brightness behavior
 
+This section describes the **door-side WS2812 LED ring** built into the ELECROW rotary display module. It is a separate system from the optional **bedside status LED** described in `docs/03_App_Flow.md` and is independently controlled.
+
 - LED ring should stay off when room lights are off.
 - When lights are on, LED ring may glow amber at low brightness.
 - LED ring brightness may be capped by ambient-light mode.
@@ -111,33 +145,57 @@ The UI layout should not change dramatically between modes; only brightness/inte
 
 ## Bedside sensor UX
 
-- VL53L4CD hand-near detection should feel intentional, not jumpy.
-- APDS-9960 still owns left/right gestures.
-- Nightlight hold must feel deliberate: stable hand at 5–10 cm for about 1.5 s.
+The bedside controller has no screen, so its UX is entirely physical sensors plus an optional silent LED. v1 and v2 are split to match `docs/03_App_Flow.md`.
+
+### v1 (first build)
+
+- **APDS-9960 standalone left/right gestures.** APDS-9960 owns directional gestures without being armed or gated by VL53L4CD.
+- **VL53L4CD standalone hand-hold nightlight** (if VL53L4CD ESPHome support is verified). Nightlight hold must feel deliberate: stable hand at 5–10 cm for about 1.5 s.
 - Quick pass-by motion must not trigger nightlight.
-- Cooldowns should prevent repeated actions.
+- Cooldowns prevent repeated actions.
 - No audio, no voice, no beeps.
+
+### v2 / future (not required for first firmware)
+
+- VL53L4CD arms, wakes, or refines APDS-9960 gesture detection (sensor fusion).
+- Sensor fusion is **not** required for the first firmware build. It should be added only after both v1 standalone paths are verified to work reliably in the actual bedside mounting.
 
 ## Environmental data UX
 
 SHT45 temperature/humidity is secondary.
 
-- Do not place temp/humidity on the main Power/Brightness/Presets pages as a required element.
-- Environmental data can appear later in:
-  - diagnostics/info view
-  - idle mini-status
-  - long-press info screen
-  - Home Assistant dashboard
+- Do not place temp/humidity on the main Power / Brightness / Presets pages as a required element.
+- There is **no** required 4th Environment page in the first build.
+- A diagnostics view, idle mini-status, or long-press info overlay are **future / v2 possibilities only, not first build**.
+- Environmental data is exposed to Home Assistant and can be shown in the Home Assistant dashboard.
 - Environmental data must not compete with lighting controls.
-- No HVAC/comfort automation UX is required for the first build.
+- No HVAC / comfort automation UX is required for the first build.
 
 ## Wake and accidental-trigger UX
 
-- Touch and knob rotation while asleep should wake first.
-- Physical knob press while asleep remains a design decision to test.
+The following wake behavior is locked for the first build (matches `docs/03_App_Flow.md`):
+
+- **Touch while asleep:** wake only.
+- **Knob rotation while asleep:** wake only.
+- **Knob press while asleep:** wake only.
+- A second deliberate action while the display is awake is what toggles or sends a command.
 - Avoid accidental room-light changes from bumps.
 - Bedroom safety is more important than shortcut speed.
 - Sensor readings must not cause sudden full-brightness room light changes.
+
+## Offline / unavailable visual state
+
+When Home Assistant, the Raspberry Pi, or the local LAN is unreachable, the door-side display should clearly indicate the state without aggressive UX. This matches the connectivity behavior in `docs/03_App_Flow.md`.
+
+- Use **"Unavailable"** as the preferred UI wording on the door-side display.
+- Show a subtle, persistent badge or small label rather than a full-screen overlay.
+- Do **not** pretend a command succeeded without state confirmation from Home Assistant.
+- Dim or desaturate affected controls if useful for clarity (for example, gray the brightness percentage, mute the power-state icon).
+- **No** flashing.
+- **No** popup modal.
+- **No** audio.
+- **No** full-screen aggressive error.
+- The offline / unavailable state belongs mainly on the door-side display, not on a constantly lit bedside LED.
 
 ## Fallback UX
 
