@@ -9,10 +9,53 @@ VelaDial uses two ESPHome devices connected to Home Assistant over WiFi. Home As
 VelaDial is **local-first**, not **Home Assistant-independent**. The normal control path is:
 
 ```text
-ESPHome device  →  WiFi LAN  →  Home Assistant  →  LocalTuya / local LAN  →  bedroom bulbs
+ESPHome device  →  local WiFi / LAN  →  Home Assistant on Raspberry Pi  →  LocalTuya / local LAN  →  bedroom bulbs
 ```
 
-If WiFi or Home Assistant is unavailable, ESPHome actions that depend on Home Assistant may not reach the bulbs. Any ESP32-side input (touch, knob, gesture, or optional button) still requires the WiFi + Home Assistant + LocalTuya path to actually change the bulbs unless a direct ESP32-to-bulb control path is implemented separately. Such a direct path is **not** part of the first build, so ESP32 buttons or LEDs alone should **not** be described as a true WiFi/HA outage fallback.
+The relevant outage types are different and should not be lumped together.
+
+**Internet / ISP outage.** Normal light control does **not** require the internet. LocalTuya talks to the Tuya bulbs over the LAN, ESPHome talks to Home Assistant over the local API, and the ESP32 nodes talk to the Pi over the LAN. If the household internet or ISP goes down but the local WiFi / LAN remains healthy, VelaDial should continue to work normally. **Internet outage alone is not a blocker for normal control.**
+
+**WiFi / router / AP / LAN outage or instability.** This is the **real network risk** for VelaDial. If the ESP32 devices, the Raspberry Pi, or the Tuya bulbs drop off the local WiFi / LAN (router reboot, AP flapping, WPA renegotiation issues, DHCP churn, RF interference), commands may not reach the bulbs even though the internet is fine. Local-first does not protect against LAN-side failure.
+
+**Home Assistant / Raspberry Pi failure.** If Home Assistant itself is unavailable (HA crashed, container restarting, Pi rebooting, OS hung), ESPHome actions that depend on Home Assistant may not reach the bulbs.
+
+**ESP32-side inputs.** Any ESP32-side input (touch, knob, gesture, or optional button) still requires the WiFi + Home Assistant + LocalTuya path to actually change the bulbs unless a separate direct ESP32-to-bulb control path is implemented. Such a direct path is **not** part of the first build, so **ESP32 buttons or LEDs alone should not be described as a true WiFi / HA outage fallback.**
+
+### Network reliability recommendations
+
+These are deployment recommendations to keep the LAN reliable. They reduce the likelihood of WiFi / router / AP / LAN outages, which are the dominant network-side risk for VelaDial.
+
+- Connect the Raspberry Pi to the router via Ethernet if possible. Keeps the Pi off the WiFi airwaves and removes one class of flake.
+- Put the Raspberry Pi and the router / WiFi AP / network gear on a UPS if possible. A Pi-only UPS helps only if the network gear remains powered through the same blip; the LAN path must stay end-to-end for control to survive.
+- Use a stable 2.4 GHz IoT SSID for the Tuya bulbs and ESP32 devices. Both ESP32-S3 and ESP32-C6 use 2.4 GHz WiFi; Tuya bulbs are typically 2.4 GHz only.
+- Avoid band steering / Smart Connect on the IoT SSID if it causes instability. IoT devices and dual-band APs do not always negotiate well.
+- Use WPA2 2.4 GHz compatibility mode if needed for older Tuya bulb firmware. WPA3-only or mixed WPA2/WPA3 with PMF-required can confuse some IoT devices.
+- Reserve static DHCP leases in the router for:
+  - Raspberry Pi / Home Assistant
+  - door-side ESP32-S3
+  - bedside ESP32-C6
+  - each Tuya bulb
+
+  Static leases avoid IP churn that breaks LocalTuya and ESPHome connections.
+- Keep control local through Home Assistant + LocalTuya / local LAN. Do not add cloud dependency for normal control.
+
+### Optional future network improvements
+
+These are future / advanced options, **not first-build requirements**. Pursue only if testing shows the household WiFi is unreliable in the actual VelaDial deployment.
+
+- **Dedicated IoT access point** for the bulbs + ESP32 devices, separate from the household WiFi. Often a cheap second AP wired into the same LAN.
+- **Pi-hosted 2.4 GHz AP** (Pi running an AP daemon such as `hostapd` + `dnsmasq` for the IoT devices). Advanced setup, more Pi load, only worth it if a dedicated AP is not an option.
+- **Pi-side fallback daemon** for Home Assistant software failure (a small service on the Pi using a local Tuya library to talk to bulbs directly when HA is down) can be researched later. It does **not** solve Pi power loss, network failure, or WiFi outage, and adds a second control path that must be coordinated with HA.
+- **Matter / Thread or Zigbee bulb migration** (ESP32-C6 has an 802.15.4 radio; bulbs would need replacement). Future v2 / v3 architecture change, not first build.
+
+### Manual wall switch as true everything-broken fallback
+
+A manual wall switch on the bulb circuit is the only simple **true "everything is broken" fallback**. It works regardless of which part of the stack has failed — Raspberry Pi, ESP32, router, WiFi AP, or Home Assistant — because it cuts mains power to the bulbs directly.
+
+It is a separate concern from the network reliability recommendations above. The recommendations reduce the likelihood of partial-failure scenarios; the wall switch covers total-failure scenarios.
+
+Relay or mains-control hardware on the ESP32 is **not** part of the first-build firmware. The wall switch lives at the wall, not in the firmware.
 
 ## Hardware
 
