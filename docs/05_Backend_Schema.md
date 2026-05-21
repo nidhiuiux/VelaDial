@@ -179,3 +179,54 @@ Do not commit live WiFi credentials, API credentials, Home Assistant tokens, Tuy
 - VL53L4CD hand-hold distance threshold (default: 5–10 cm).
 - VL53L4CD hand-hold duration threshold (default: 1.5 s).
 - SHT45 update interval.
+
+### Generic example entity aliases
+
+| Generic Example Entity | Maps To / Derived From | Purpose |
+| --- | --- | --- |
+| `binary_sensor.bedside_hand_near` | `binary_sensor.veladial_bedside_hand_present` / VL53L4CD distance | Human-friendly generic alias for hand-near detection |
+| `binary_sensor.bedside_nightlight_hold` | `binary_sensor.veladial_bedside_hand_holding` / VL53L4CD distance + timer | Human-friendly generic alias for deliberate nightlight hold |
+| `number.display_auto_brightness_level` | `display_brightness_target` / TSL2591 lux mapping | Optional mapped display brightness target |
+| `sensor.last_sensor_update` | Sensor timestamp diagnostics | Optional helper for stale sensor detection |
+| `binary_sensor.sensor_health_ok` | Sensor availability checks | Optional helper for sensor health diagnostics |
+
+These are example aliases/helper names only. Final production entity IDs depend on ESPHome names, Home Assistant helper setup, and firmware implementation.
+
+## Sensor and entity behavior mapping
+
+| Input/entity | Condition | Action |
+| --- | --- | --- |
+| TSL2591 lux | low ambient light | dim display/backlight |
+| TSL2591 lux | bright room | increase display readability |
+| VL53L4CD distance | hand steady 5–10 cm for about 1.5 s | trigger nightlight mode |
+| APDS gesture left | valid gesture + cooldown clear | turn bedroom group off |
+| APDS gesture right | valid gesture + cooldown clear | turn bedroom group on |
+| SHT45 temp/humidity | available | expose diagnostics only |
+
+## Security and privacy model
+
+- No cloud backend is required.
+- Sensor data stays inside Home Assistant/local network unless the owner later adds cloud integrations.
+- No camera is used.
+- No microphone is used.
+- No audio recording is used.
+- No voice dependency is used.
+- Environmental data is diagnostic/comfort data only.
+
+## Scope guard
+
+- Temperature/humidity remains secondary.
+- Environmental data must not clutter the main Power/Brightness/Presets UI.
+- Environmental data is not part of the core lighting control loop.
+- No HVAC/comfort automation is required in the first build.
+- The main product remains a silent local-first lighting controller, not a general environmental monitor.
+
+## Open implementation questions
+
+- Confirm final ESPHome entity names after firmware compile.
+- Verify VL53L4CD ESPHome support path.
+- Decide exact lux-to-backlight mapping curve after real room testing.
+- Decide exact distance threshold and hold time after bedside testing.
+- Decide whether hand-near/nightlight-hold states live fully in ESPHome or are exposed to Home Assistant as helpers.
+- Decide how often to publish SHT45 values to Home Assistant.
+- Decide whether sensor health diagnostics are implemented in ESPHome or Home Assistant.
