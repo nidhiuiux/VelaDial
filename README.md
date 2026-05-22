@@ -76,11 +76,16 @@ The ESPHome files are starter bring-up configurations, not final production firm
 - `esphome/door_side_rotary.yaml` brings up the ELECROW display, touch, encoder, backlight, and basic LVGL page.
 - `esphome/bedside_gesture.yaml` brings up the ESP32-C6 + APDS-9960 gesture controller.
 
-The next major work items are:
+The next major work items are validation-first, then bring-up firmware. Production YAML is not the next step:
 
-1. Upgrading the door-side YAML into the full 3-page LVGL UI with adaptive brightness.
-2. Adding VL53L4CD sensor fusion to the bedside gesture controller.
-3. Adding TSL2591 and SHT45 to the door-side node.
+1. Validate the ELECROW board revision and pinout against the actual hardware before any production firmware.
+2. Verify I2C scans on both nodes (door-side: `0x29`, `0x44`; bedside: `0x39`, `0x29`).
+3. Verify the VL53L4CD ESPHome support path before writing hold-nightlight firmware. If blocked, surface the decision to the owner before any fallback.
+4. Start with bring-up firmware, not full production YAML.
+5. Door-side bring-up: display, touch, encoder, backlight, TSL2591, SHT45.
+6. Bedside bring-up: APDS-9960 standalone first; VL53L4CD support verification second. **Do not implement sensor fusion in v1.**
+
+v1 bedside behavior is APDS-9960 standalone left/right gestures plus VL53L4CD standalone hand-hold nightlight (only if VL53L4CD support is verified). VL53L4CD/APDS-9960 sensor fusion is v2 / future only — not a first-build requirement.
 
 ## Design principles
 
