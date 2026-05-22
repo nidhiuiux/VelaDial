@@ -4,6 +4,10 @@
 **Date:** May 20, 2026  
 **Status:** CORRECTED — Awaiting owner approval to begin doc updates
 
+> **Status note (added later):** This file is a historical planning artifact from the original sensor-expansion update (PR #1 era). It is preserved for traceability, but it is **not** the current source of truth for firmware behavior. Current decisions are owned by `docs/02_TRD.md`, `docs/03_App_Flow.md`, `docs/04_UI_UX_Design_Brief.md`, `docs/06_Implementation_Plan.md`, `docs/07_Research_Alternatives.md`, and `PROJECT_CONTEXT_FOR_AI.md`.
+>
+> In particular, any older wording in this file that implies VL53L4CD/APDS-9960 sensor fusion is a first-build requirement, or that VL53L4CD is definitely custom-component-only, should be treated as **superseded**. Current truth: APDS-9960 standalone left/right gestures are v1; VL53L4CD standalone hand-hold nightlight is v1 only if support is verified; VL53L4CD/APDS-9960 sensor fusion is v2 / future only; VL53L4CD ESPHome support path is **unverified** — not assumed native and not assumed custom-only.
+
 This document describes the controlled set of changes required to integrate the three new Adafruit sensors (TSL2591, VL53L4CD, SHT45) into the VelaDial project documentation and firmware architecture. No changes will be made to the 7 source-of-truth docs until the owner explicitly approves each step.
 
 ---
