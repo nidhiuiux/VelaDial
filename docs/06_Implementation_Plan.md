@@ -69,10 +69,10 @@ Tasks:
 1. Wire VL53L4CD to bedside I2C bus.
 2. Confirm I2C detection at `0x29`.
 3. Verify ESPHome support path before firmware implementation.
-4. If native support is unavailable, evaluate:
-   - Custom component.
-   - Community component.
-   - Alternate ToF sensor such as VL53L1X.
+4. If native ESPHome support is unavailable for VL53L4CD, **pause and ask the owner for approval before any fallback**. Evaluation options (in priority order):
+   - Maintained community component or custom C++ component for VL53L4CD.
+   - **VL53L0X** as the verified ESPHome-supported ToF fallback only. VL53L0X is **not** the selected default; re-tune the 5–10 cm hold threshold for VL53L0X's higher ~30 mm minimum range.
+   - Do **not** silently substitute VL53L0X. Do **not** assume **VL53L1X** as a verified ESPHome fallback; VL53L1X support is unverified (no official `vl53l1x` docs page and no `vl53l1x` component in the ESPHome dev branch at the time of writing).
 5. Test distance readings at 5 cm, 10 cm, 30 cm, and normal pass-by motion.
 6. Tune hand-near threshold.
 7. Tune hand-hold threshold around 5–10 cm for about 1.5 seconds.
@@ -84,27 +84,66 @@ Done when:
 - Hand-near detection is reliable and intentional.
 - Quick pass-by motion is ignored.
 
-Approval gate: No production YAML until sensor support path is verified.
+Approval gate: No production YAML until sensor support path is verified. VL53L4CD remains the **planned** purchased bedside ToF sensor; the architecture is **not** being changed to VL53L0X.
 
-## Phase 5 — Bedside sensor-fusion implementation
+## Phase 5 — Bedside v1 firmware implementation (no fusion in v1)
 
-Goal: combine VL53L4CD and APDS-9960 for reliable gesture and nightlight control.
+Goal: implement v1 production bedside behavior. v1 is **APDS-9960 standalone left/right gestures + VL53L4CD standalone hand-hold nightlight (only if VL53L4CD support is verified)**. Sensor fusion is **not** part of v1 — see Phase 5C.
+
+### Validation gate (before any production bedside YAML)
+
+- Phase 3 APDS-9960 standalone gesture readings verified in the real bedside mounting.
+- Phase 4 VL53L4CD ESPHome support path verified (or a fallback explicitly approved by the owner per Phase 4 task 4).
+- I2C scan on the bedside node confirms expected addresses (`0x39` APDS-9960 + `0x29` VL53L4CD).
+- Actual mounting position tested for sunlight / ambient-IR false triggers and typical hand-approach angle.
+- Cooldowns and quick-pass-by rejection validated during bring-up.
+- **Do not implement sensor fusion in v1.**
+
+### Phase 5A — APDS-9960 standalone gesture implementation (v1)
 
 Tasks:
 
-1. VL53L4CD hand-near detection arms/wakes APDS-9960 gesture detection.
-2. APDS-9960 remains responsible for left/right directional gestures.
-3. Left gesture turns bedroom group off.
-4. Right gesture turns bedroom group on.
-5. Hand-hold (5–10 cm, ~1.5 s) triggers warm 10% nightlight.
-6. Add cooldowns to prevent repeated triggers.
-7. Confirm sensor behavior does not cause accidental full-brightness light changes.
+1. APDS-9960 owns directional gestures on its own. VL53L4CD does **not** arm or gate the gesture sensor in v1.
+2. Left gesture turns the bedroom light group off.
+3. Right gesture turns the bedroom light group on.
+4. About 1 s cooldown after each successful gesture to prevent repeat-fire.
+5. Ignore unclear, ambiguous, or noisy gesture reads. APDS-9960 misses are expected in real-world use.
+6. Confirm sensor behavior does not cause accidental full-brightness light changes from noise.
 
 Done when:
 
-- Sensor fusion reliably distinguishes gesture from hold.
-- Nightlight triggers only on deliberate hold.
-- No accidental triggers from pass-by or bumps.
+- Left/right gestures reliably control the bedroom light group in the real bedside mounting.
+- Cooldown prevents repeated triggers.
+- No accidental full-brightness changes from pass-by or noise.
+
+### Phase 5B — VL53L4CD standalone hand-hold nightlight (v1, only if support verified)
+
+**Gated on Phase 4 VL53L4CD support verification.** If support is blocked and a fallback to VL53L0X was approved by the owner per Phase 4 task 4, treat this phase as VL53L0X with re-tuned thresholds for its higher ~30 mm minimum range.
+
+Tasks:
+
+1. VL53L4CD handles deliberate hand-hold detection on its own. It does **not** arm APDS-9960.
+2. Trigger: hand stable in the 5–10 cm range above the bedside sensor.
+3. Hold duration: continuous in-range for about 1.5 s.
+4. Hand-near debounce: require the hand to be in range for at least about 200 ms before the 1.5 s hold timer starts (prevents quick pass-by from starting the timer).
+5. Cooldown: about 5 s after a successful trigger before another nightlight trigger is possible.
+6. Action on trigger: Home Assistant turns the bedroom group on at warm low nightlight (about 10 % brightness, warm color).
+7. Quick pass-by motion must not trigger.
+8. Confirm sensor behavior does not cause accidental full-brightness light changes from noise.
+
+Done when:
+
+- Deliberate hand-hold at 5–10 cm for ~1.5 s reliably triggers the nightlight.
+- Quick pass-by motion is ignored.
+- Cooldown prevents repeated triggers.
+
+### Phase 5C — Sensor fusion (v2 / future, not first-build requirement)
+
+Sensor fusion is **not required for the first firmware build.** It is described here only as a future enhancement path.
+
+- Future: VL53L4CD distance reading could be used to arm, wake, or refine APDS-9960 gesture detection (for example, only accepting APDS-9960 gesture events while VL53L4CD reports a hand within an arming range).
+- Only add fusion after both Phase 5A (APDS standalone gestures) and Phase 5B (VL53L4CD standalone hold) are independently validated to work reliably in the actual bedside mounting.
+- See `docs/03_App_Flow.md` and `docs/08_Sensor_Expansion_Research.md` for the broader fusion design discussion.
 
 ## Phase 6 — Door-side hardware bring-up
 
@@ -165,21 +204,32 @@ Done when:
 
 ## Phase 9 — Door-side control logic
 
-Goal: connect physical input to lighting behavior.
+Goal: connect physical input to lighting behavior, matching the locked behavior in `docs/03_App_Flow.md` and `docs/04_UI_UX_Design_Brief.md`.
+
+Locked door-side behavior (must match):
+
+- Main UI is exactly 3 pages: Power, Brightness, Presets. **No required 4th Environment page.**
+- 4 first-build presets only: Warm White, Soft Amber, Neutral White, Low Nightlight. No dense color picker / color wheel / per-bulb editor; optional RGB accent is v2 / future only.
+- Page navigation: horizontal swipe (left = next, right = previous) with a 3-dot page indicator near the bottom; active dot amber.
+- Wake behavior is **wake-only first**: touch / knob rotation / knob press while asleep wake the display only; a second deliberate action while awake toggles or sends a command.
+- Per-page knob press: Power = toggle the bedroom light group; Brightness = return to Power page; Presets = apply highlighted preset.
+- Use "Unavailable" wording when Home Assistant / Pi / LAN state cannot be confirmed; subtle persistent badge only — no flashing, popups, audio, or full-screen aggressive errors.
 
 Tasks:
 
-1. Add power toggle behavior.
-2. Add brightness arc and encoder binding.
+1. Add power toggle behavior (tap and knob press on the Power page).
+2. Add brightness arc and encoder binding (about 5 % steps, debounced).
 3. Debounce encoder updates so commands feel smooth without flooding Home Assistant.
-4. Add color preset actions.
-5. Read current light state back from Home Assistant where possible.
+4. Add the 4 locked color preset actions (Warm White, Soft Amber, Neutral White, Low Nightlight) as 2×2 large touch targets with amber-bordered active preset.
+5. Read current light state back from Home Assistant where possible and reconcile UI.
 
 Done when:
 
 - Door-side dial can turn the group on/off.
 - Rotation adjusts group brightness predictably.
 - Presets apply correctly.
+- Page-swipe navigation and 3-dot indicator behave as locked.
+- Wake-only-first behavior is honored.
 
 Approval gate: No full LVGL integration until display bring-up and sensor readings are stable.
 
@@ -237,8 +287,8 @@ Tasks:
 8. Test sensor failure fallback:
    - TSL2591 unavailable = fixed dim/sleep behavior.
    - SHT45 unavailable = hide diagnostics.
-   - VL53L4CD unavailable = APDS-only gesture fallback if possible.
-   - APDS-9960 unavailable = ToF nightlight may still work if possible.
+   - VL53L4CD unavailable = bedside falls back to APDS-9960 standalone gestures only (which is also the v1 standalone path); hold-nightlight feature disabled until VL53L4CD recovers.
+   - APDS-9960 unavailable = bedside falls back to VL53L4CD standalone hold-nightlight only (if support is verified); directional gestures disabled until APDS-9960 recovers.
 
 Done when:
 
@@ -282,8 +332,9 @@ Note: Do not create the hardware file in this implementation plan step.
 
 ## Final acceptance checklist
 
-- Gesture control works from the bed.
-- Sensor-fusion (VL53L4CD + APDS-9960) improves gesture reliability.
+- APDS-9960 standalone left/right gestures work from the bed (v1).
+- VL53L4CD standalone hand-hold nightlight works deliberately (v1, only if VL53L4CD support was verified).
+- Sensor fusion (VL53L4CD arming / refining APDS-9960) is **not** required for first build; it is a v2 / future enhancement.
 - Nightlight hold triggers only on deliberate hand-hold.
 - Rotary brightness control works from the door.
 - Display adapts to ambient light via TSL2591.
