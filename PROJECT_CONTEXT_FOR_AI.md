@@ -16,26 +16,30 @@ The system has three parts:
 
 ## Current build goal
 
-Write production-ready ESPHome YAML for:
+Write production-ready ESPHome YAML for v1 only:
 
-1. The ELECROW 1.28 in rotary display with a full 3-page LVGL UI (Power, Brightness, Presets).
-2. Adaptive display brightness using TSL2591 ambient light sensing.
-3. The bedside ESP32-C6 gesture controller with sensor fusion (VL53L4CD + APDS-9960).
-4. ToF-based nightlight hold (VL53L4CD detects deliberate hand-hold at 5–10 cm for ~1.5 s).
+1. **Door-side rotary display** — 3-page LVGL UI (Power, Brightness, Presets) with locked behavior described in this file and in `docs/03_App_Flow.md` and `docs/04_UI_UX_Design_Brief.md`.
+2. **Adaptive display brightness** — TSL2591 lux drives display backlight PWM locally on the ESP32-S3, no Home Assistant round-trip.
+3. **Bedside controller v1**:
+   - APDS-9960 standalone left/right gestures.
+   - VL53L4CD standalone hand-hold nightlight, only if VL53L4CD ESPHome support is verified.
+   - **Sensor fusion is v2 / future, not v1.**
+4. **ELECROW pinout must be validated** against the actual board silkscreen / PCB revision before production firmware. Multiple board revisions exist.
 
 The YAML should be readable, commented, configurable, and safe for public source control.
 
 ## Main design constraints
 
 - Silent interaction only.
-- Local-first control path.
-- No internet dependency for normal light control.
+- Local-first control path. Internet / ISP outage alone should not break normal control if local LAN, Raspberry Pi, Home Assistant, and LocalTuya are healthy.
+- No cloud dependency for normal control.
 - Target response below 500 ms on the local network.
 - Dark UI with low light pollution.
 - Large readable labels for a 240 x 240 round display.
 - Keep credentials and local keys out of the repository.
 - Main UI stays exactly 3 pages: Power, Brightness, Presets.
 - Temperature/humidity is secondary diagnostics only, not a required main page.
+- Bedroom safety is more important than shortcut speed; a second deliberate action is what acts.
 
 ## Hardware already selected
 
@@ -58,6 +62,7 @@ The YAML should be readable, commented, configurable, and safe for public source
 - APDS-9960 gesture/proximity sensor over I2C (address `0x39`).
 - VL53L4CD time-of-flight distance sensor over I2C (address `0x29`).
 - Intended to be mounted in a small dark enclosure near the bed.
+- Optional bedside **status LED** (single-color amber or red, any free GPIO + current-limiting resistor) for silent local input acknowledgement — see "Bedside status LED behavior (optional, v1)" below.
 
 ### Hub and lights
 
@@ -79,7 +84,7 @@ Door-side and bedside nodes use separate I2C buses. They are independent ESP32 d
 
 TSL2591 and VL53L4CD both use `0x29`, but this is not a conflict because they are on different ESP32 nodes. Each node's I2C bus only has one device at `0x29`.
 
-No XSHUT pin reassignment or TCA9548A I2C multiplexer is required for the first-build architecture.
+No XSHUT pin reassignment or TCA9548A I2C multiplexer is required for the first-build architecture. They remain as future fallback only if the architecture ever places both `0x29` sensors on the same bus.
 
 ## Decisions already made
 
@@ -87,13 +92,17 @@ No XSHUT pin reassignment or TCA9548A I2C multiplexer is required for the first-
 - Bedside controller: ESP32-C6 plus APDS-9960 plus VL53L4CD.
 - Firmware: ESPHome for both controllers.
 - UI framework: ESPHome LVGL.
-- Hub: Home Assistant.
-- Bulb control: local Tuya LAN control through Home Assistant.
+- Hub: Home Assistant on a Raspberry Pi.
+- Bulb control: local Tuya LAN control through Home Assistant + LocalTuya.
 - Communication: ESPHome Native API to Home Assistant, then Home Assistant to the light group.
 - TSL2591 controls display/backlight only, not room bulbs.
 - SHT45 is secondary diagnostics, not a required main page.
 - VL53L4CD enables deliberate nightlight hold, not accidental triggers.
-- No required 4th environment page on the display.
+- **No required 4th Environment page on the display.**
+- **Main UI is exactly 3 pages: Power, Brightness, Presets.**
+- **First-build presets are locked to exactly 4: Warm White, Soft Amber, Neutral White, Low Nightlight.** Optional RGB accent is v2 / future only.
+- **Bedside v1 uses APDS-9960 standalone gestures + VL53L4CD standalone hand-hold nightlight.** Sensor fusion is v2 / future only.
+- **VL53L4CD ESPHome support remains unverified** — see "VL53L4CD support truth" below.
 
 ## ELECROW rotary display pinout
 
@@ -137,35 +146,86 @@ No XSHUT pin reassignment or TCA9548A I2C multiplexer is required for the first-
 
 - Board: `esp32-s3-devkitc-1`.
 - Framework: ESP-IDF.
-- Display model: `GC9A01A`.
+- Display model: `GC9A01A` under the `ili9xxx` platform.
 - Touch platform: `cst816`, address `0x15`.
 - `invert_colors: true` may be required.
 - PSRAM and flash settings should match the board revision.
 - Touch transform and encoder direction must be verified on real hardware.
 
-## Door-side LVGL UI requirements
+## Locked door-side UI behavior
 
-The display should use a 3-page swipeable LVGL interface.
+The following behaviors are locked for the first build. They are owned by `docs/03_App_Flow.md` and `docs/04_UI_UX_Design_Brief.md`; the lines below are a concise summary for AI handoff.
 
-### Page 1 — Power
+### Pages
+
+- Main UI is exactly **3 pages**: Power, Brightness, Presets.
+- **No required 4th Environment page.**
+
+### Page navigation
+
+- Horizontal swipe navigates between pages.
+- Left swipe = next page (Power → Brightness → Presets → Power).
+- Right swipe = previous page.
+- A small **3-dot page indicator** appears near the bottom of the round screen.
+- The active page's dot is amber; inactive dots are low-contrast white.
+
+### Wake behavior (locked)
+
+- **Touch while asleep:** wake only.
+- **Knob rotation while asleep:** wake only.
+- **Knob press while asleep:** wake only.
+- A second deliberate action while the display is awake is what toggles or sends a command.
+- Bedroom safety is more important than shortcut speed.
+
+### Per-page knob press behavior (applies only when display is awake)
+
+- **Power page:** knob press toggles the bedroom light group (same as tapping the center).
+- **Brightness page:** knob press returns to the Power page.
+- **Presets page:** knob press applies the currently highlighted preset.
+- **While asleep:** knob press wakes only.
+
+### Page content rules
+
+#### Power page
 
 - Large central power control.
 - Tap to toggle the bedroom light group.
-- Ambient LED ring glows amber when lights are on.
-- Clear on/off state text.
+- Knob press (when awake) also toggles the bedroom light group.
+- Optional WS2812 LED ring glows amber when lights are on.
+- Status text: On / Off / Unavailable.
 
-### Page 2 — Brightness
+#### Brightness page
 
 - Circular arc around the edge of the round display.
-- Large center percentage label, such as `75%`.
-- Rotary knob changes brightness in 5% steps.
+- Large center percentage label.
+- Rotary knob changes brightness in about 5 % steps.
 - Commands should be debounced enough to avoid flooding Home Assistant.
+- Knob press returns to the Power page.
 
-### Page 3 — Color / temperature
+#### Presets page
 
-- Simple color-temperature or preset page.
-- 4 to 6 large preset buttons.
-- Suggested presets: red, blue, purple, warm white, neutral white, nightlight.
+- Exactly 4 first-build presets:
+  1. Warm White
+  2. Soft Amber
+  3. Neutral White
+  4. Low Nightlight
+- 2×2 large touch targets on the 240×240 round screen.
+- Active preset uses an amber border (or equivalent amber highlight).
+- Tap a preset to apply.
+- Knob rotation cycles the preset highlight; knob press applies the highlighted preset.
+- Optional RGB accent preset is **future / v2 only**.
+- **No dense color picker, color wheel, or per-bulb editor in first build.**
+
+## "Unavailable" UI wording
+
+When Home Assistant, the Raspberry Pi, or the local LAN is unreachable:
+
+- Use **"Unavailable"** as the preferred door-side UI wording.
+- Show a subtle persistent badge or small label, not a full-screen overlay.
+- Do **not** pretend a command succeeded without state confirmation from Home Assistant.
+- Dim or desaturate affected controls if useful for clarity.
+- **No** flashing, popup modals, audio, or full-screen aggressive errors.
+- Recover automatically when the connection returns. No user action required.
 
 ## Adaptive display brightness
 
@@ -186,29 +246,84 @@ TSL2591 measures ambient lux on the door-side node and maps it to display backli
 - Text: white, `#FFFFFF`.
 - Large primary font size, roughly 48 px or larger where practical.
 - Flat design, no heavy shadows.
-- Screen dims to about 10% after 60 seconds of inactivity.
-- Touch or knob movement wakes the screen.
-- Waking the screen should not accidentally toggle the lights.
+- Screen dims to about 10 % after 60 seconds of inactivity.
+- Touch or knob movement wakes the screen (wake-only first per "Wake behavior" above).
+- Waking the screen does not toggle the lights; that takes a second deliberate action.
 
-## Bedside gesture requirements
+## Bedside controller v1
 
-The bedside device is headless and touchless.
+The bedside device is headless and touchless. v1 is **APDS-9960 standalone gestures + VL53L4CD standalone hold**. No sensor fusion in v1.
 
-### Sensor fusion
+### v1 — APDS-9960 standalone gestures
 
-VL53L4CD monitors distance continuously. When a hand enters range, it arms APDS-9960 for gesture detection. This improves reliability and reduces false triggers.
+- **Wave left:** turn the bedroom light group off.
+- **Wave right:** turn the bedroom light group on.
+- About 1 s cooldown after each successful gesture to prevent repeat-fire.
+- Unclear, ambiguous, or noisy gesture reads are ignored. APDS-9960 misses are expected in real-world use.
+- Mounting and ambient lighting (sunlight, IR sources) affect reliability.
 
-### Expected interactions
+### v1 — VL53L4CD standalone hand-hold nightlight
 
-- Wave left: turn all bedroom lights off.
-- Wave right: turn all bedroom lights on.
-- Hold hand steady at 5–10 cm for ~1.5 s: nightlight mode at about 10% brightness, warm white.
-- Quick pass-by motion must not trigger nightlight.
-- Use a cooldown after each action to reduce false triggers.
+Only if VL53L4CD ESPHome support is verified (see "VL53L4CD support truth" below).
 
-### Firmware caution
+- **Trigger:** hand stable in the 5–10 cm range above the bedside sensor.
+- **Hold duration:** continuous in-range for about 1.5 s.
+- **Hand-near debounce:** require the hand to be in range for at least about 200 ms before the 1.5 s hold timer starts. Prevents quick pass-by motion from starting the timer.
+- **Cooldown:** about 5 s after a successful trigger before another nightlight trigger is possible.
+- **Action on trigger:** Home Assistant turns the bedroom group on at a low warm nightlight (about 10 % brightness, warm color).
+- **Quick pass-by motion must not trigger.**
 
-VL53L4CD ESPHome support path must be verified before production firmware. If native support is unavailable, evaluate a custom component, community component, or alternate ToF sensor such as VL53L1X.
+### v2 / future — sensor fusion (not required for first firmware)
+
+- VL53L4CD distance reading could be used to arm, wake, or refine APDS-9960 gesture detection — for example, only accepting APDS-9960 gesture events while VL53L4CD reports a hand within an arming range.
+- Sensor fusion is **not required for the first firmware build.** It should be added only after both v1 standalone paths are verified to work reliably in the actual bedside mounting.
+- See `docs/08_Sensor_Expansion_Research.md` for the broader fusion design discussion.
+
+### General bedside rules
+
+- No audio, no voice, no beeps.
+- Cooldowns remain active even during Home Assistant failure to prevent command spam.
+
+## Bedside status LED behavior (optional, v1)
+
+An optional small status LED on the bedside controller provides silent local feedback. This is optional first-build hardware, not required.
+
+- **1 blink:** input detected (gesture or button registered locally by the ESP32).
+- **2 blinks:** nightlight hold triggered.
+- The status LED does **not** confirm bulb state. Bulb state is shown by the bulbs themselves.
+- v1 does **not** use a steady or pulsing offline-status LED. A constantly lit LED in a dark bedroom causes light pollution, which contradicts the project's bedroom-safe principle.
+- Offline / unavailable status belongs primarily on the door-side display, not on a constantly lit bedside LED.
+
+## VL53L4CD support truth
+
+- VL53L4CD remains the **planned** bedside ToF sensor because it has been purchased.
+- VL53L4CD ESPHome support path is **unverified**.
+- Do not assume native ESPHome support.
+- Do not assume VL53L4CD is definitely custom-only unless verified.
+- **VL53L0X is the verified ESPHome-supported ToF fallback only.** Do not switch to VL53L0X unless VL53L4CD validation blocks progress and the owner approves.
+- Do not describe **VL53L1X** as a native ESPHome fallback unless current official ESPHome documentation or a trusted component source proves it. (Live verification at the time of writing showed neither a docs page nor a component in the ESPHome dev branch.)
+
+## Environmental data truth
+
+- SHT45 temperature/humidity is **secondary**.
+- There is **no required Environment page** on the device.
+- Do not put temperature or humidity on Power / Brightness / Presets as a required UI element.
+- A diagnostics view, idle mini-status, or long-press info overlay are **future / v2 possibilities only, not first build**.
+- SHT45 values are exposed to Home Assistant and can be shown in the Home Assistant dashboard.
+- **No HVAC / comfort automation in first build.**
+
+## Network reliability truth (concise)
+
+VelaDial is local-first. Detailed deployment guidance lives in `docs/02_TRD.md`; the lines below are the short version for AI handoff.
+
+- **Internet / ISP outage alone should not break normal control** if local LAN, Pi, Home Assistant, and LocalTuya are healthy. No cloud dependency for normal control.
+- **LAN / WiFi / router / AP instability is the real network risk.** Local-first does not protect against LAN-side failure.
+- Recommended deployment (full list in TRD):
+  - Raspberry Pi on Ethernet to the router if possible.
+  - UPS for both the Raspberry Pi **and** the router / WiFi AP / network gear (Pi-only UPS is not enough if the network gear loses power through the same blip).
+  - Stable 2.4 GHz IoT SSID for Tuya bulbs and ESP32 devices.
+  - Static DHCP leases for Pi, ESP32 nodes, and each Tuya bulb.
+- A manual wall switch on the bulb circuit remains the only simple true "everything is broken" fallback. It lives at the wall, not in the firmware.
 
 ## Recommended Home Assistant entity model
 
@@ -220,25 +335,38 @@ Do not hardcode private device keys, tokens, passwords, or local environment val
 
 ## What another AI should do next
 
-1. Read `README.md`, this file, and all files in `docs/`.
-2. Treat the pinout in `hardware/elecrow_pinout.md` as the local working reference.
-3. Upgrade `esphome/door_side_rotary.yaml` from bring-up firmware to a full LVGL UI with adaptive brightness (TSL2591).
-4. Add TSL2591 and SHT45 sensor configuration to the door-side YAML.
-5. Upgrade `esphome/bedside_gesture.yaml` to include VL53L4CD sensor fusion with APDS-9960.
-6. Implement ToF-based nightlight hold (VL53L4CD hand-hold at 5–10 cm for ~1.5 s).
-7. Verify VL53L4CD ESPHome support path before writing production firmware for it.
-8. Keep `esphome/bedside_gesture.yaml` simple, reliable, and debounced.
-9. Do not introduce a cloud-only dependency into the main control path.
-10. Do not add a required 4th environment page. Temperature/humidity is secondary.
-11. Clearly mark any hardware assumption that still needs real-device validation.
+The order matters. Do **not** jump into production firmware before validation steps.
+
+1. **Read first.** Read `README.md`, this file, and all files in `docs/` — especially `docs/02_TRD.md`, `docs/03_App_Flow.md`, `docs/04_UI_UX_Design_Brief.md`, and `docs/08_Sensor_Expansion_Research.md`. These are the locked source of truth; this file is a summary of them.
+2. **Validate hardware before production firmware.**
+   - Validate the ELECROW board revision and pinout against `hardware/elecrow_pinout.md` and the actual board silkscreen. Multiple ELECROW CrowPanel 1.28 in revisions exist.
+   - Run an I2C scan on both nodes and confirm expected addresses (door-side `0x29`, `0x44`; bedside `0x39`, `0x29`).
+3. **Verify VL53L4CD ESPHome support path** before writing hold-nightlight firmware. If support is blocked, do not silently substitute VL53L0X — surface the decision to the owner first.
+4. **Start with bring-up, not production YAML.**
+   - Door-side bring-up: display, touch, encoder, backlight, TSL2591, SHT45. Confirm everything talks before adding the full LVGL UI.
+   - Bedside bring-up: APDS-9960 standalone first. VL53L4CD second, gated on the support-path verification.
+5. **Then draft production YAML in line with the locked decisions.**
+   - Door-side: 3-page LVGL (Power, Brightness, Presets), the 4 locked presets in 2×2 layout, page-swipe navigation with the 3-dot indicator, per-page knob press behavior, wake-only-first behavior, "Unavailable" badge for HA / LAN outage.
+   - Bedside: APDS-9960 standalone left/right gestures + (if support verified) VL53L4CD standalone hand-hold nightlight. **Do not implement sensor fusion in v1.**
+6. **Constraints to honor.**
+   - No cloud dependency for normal control.
+   - No required 4th Environment page.
+   - No dense color picker, color wheel, or per-bulb editor in v1.
+   - No steady / pulsing bedside offline LED in v1 (bedroom light pollution).
+   - No relay or mains-control hardware on the ESP32 in v1.
+   - Mark any hardware assumption that still needs real-device validation.
 
 ## Useful references
 
 - ELECROW CrowPanel 1.28 in HMI ESP32 rotary display documentation.
-- ESPHome LVGL documentation.
+- ESPHome LVGL documentation (`esphome.io/components/lvgl/`).
+- ESPHome ili9xxx display documentation (covers GC9A01A).
+- ESPHome CST816 touchscreen documentation.
+- ESPHome rotary_encoder documentation.
 - ESPHome APDS9960 documentation.
 - ESPHome TSL2591 documentation.
 - ESPHome SHT4x documentation.
-- ST VL53L4CD datasheet and ESPHome community notes.
+- ESPHome VL53L0X documentation (fallback reference only; not the selected sensor).
+- ST VL53L4CD datasheet and ESPHome community notes (support path unverified at time of writing).
 - Home Assistant LocalTuya documentation and community notes.
 - SmartKnob-style rotary interaction patterns as inspiration, not as code to copy.
