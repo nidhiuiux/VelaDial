@@ -55,7 +55,9 @@ Implements the validation defined in
 
 ### Subsystem results
 
-Statuses: **PASS** / **FAIL** / **BLOCKED** / **NOT TESTED**.
+Statuses: **PASS** / **PARTIAL** / **FAIL** / **BLOCKED** / **NOT TESTED**.
+(**PARTIAL** is only acceptable with a documented workaround approved by
+Hardik — see the Step 15B gate below.)
 
 | # | Check | Expected result | Actual result | Status | Evidence / notes |
 | -: | --- | --- | --- | --- | --- |
