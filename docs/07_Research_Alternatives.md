@@ -200,7 +200,7 @@ Sources: Adafruit TSL2591 product page, ESPHome sensor documentation, Adafruit l
 | --- | --- | --- | --- | --- |
 | VL53L4CD | `0x29` | 1–1300 mm | Close-range hand detection | Needs verification |
 | VL53L0X | `0x29` | 30–2000 mm | General short-range ToF | Native (`vl53l0x`) |
-| VL53L1X | `0x29` | 40–4000 mm | Medium-range ToF | Native (`vl53l1x`) |
+| VL53L1X | `0x29` | 40–4000 mm | Medium-range ToF | Needs verification |
 | VL6180X | `0x29` | 5–200 mm | Very close range + ambient light | Native (`vl6180x`) |
 | APDS-9960 proximity | `0x39` | ~0–200 mm (unitless) | Basic near/far detection | Native (`apds9960`) |
 | VCNL4040 | `0x60` | 0–200 mm | Proximity + ambient light combo | Community/custom |
@@ -209,29 +209,29 @@ Sources: Adafruit TSL2591 product page, ESPHome sensor documentation, Adafruit l
 
 Strengths: True time-of-flight distance measurement. Good close-range accuracy (1–1300 mm). Low power consumption. Small package. Provides real millimeter distance values rather than unitless proximity.
 
-Weaknesses: ESPHome native support needs verification before firmware implementation. Shares `0x29` with TSL2591 (not a conflict in this architecture). Newer sensor with less community documentation than VL53L0X/VL53L1X.
+Weaknesses: ESPHome native support needs verification before firmware implementation. Shares `0x29` with TSL2591 (not a conflict in this architecture). Newer sensor with less community documentation than VL53L0X.
 
 Why it fits VelaDial: Provides the precise distance data needed to distinguish "hand at 5–10 cm holding steady" from "hand passing by quickly." This enables reliable nightlight hold detection.
 
-### VL53L0X
+### VL53L0X — verified ESPHome fallback only (not selected default)
 
-Strengths: Very well-supported in ESPHome. Widely available. Good community documentation.
+Strengths: Verified native ESPHome support — the `vl53l0x` platform exists in the current official ESPHome docs and in the ESPHome dev branch (see "Source verification note" below). Widely available. Good community documentation.
 
-Weaknesses: Less accurate at very close range than VL53L4CD. Higher minimum range (30 mm vs 1 mm).
+Weaknesses: Less accurate at very close range than VL53L4CD. Higher minimum range (30 mm vs 1 mm), which would require re-tuning the 5–10 cm hold-detection thresholds.
 
 Why not preferred first: VL53L4CD was already purchased and has better close-range performance for the 5–10 cm hold detection use case.
 
-Fallback note: If VL53L4CD ESPHome support becomes a blocker, VL53L0X is a well-supported alternative.
+Fallback positioning: VL53L0X is the verified ESPHome-supported ToF fallback **only**. It is **not** the selected default. Do not switch to VL53L0X unless VL53L4CD support validation blocks progress on the bedside hand-hold firmware and the project owner explicitly approves the swap. If used, hold thresholds must be re-tuned because of the higher 30 mm minimum range.
 
 ### VL53L1X
 
-Strengths: Excellent ESPHome support. Longer range (up to 4 m). Good accuracy.
+Strengths: Longer range (up to 4 m). Good close- to mid-range accuracy on paper.
 
-Weaknesses: Optimized for longer range; may be less precise at the 5–10 cm hold distance. More expensive.
+Weaknesses: **ESPHome native support is unverified.** At the time of the latest review, no official `vl53l1x` ESPHome docs page and no `vl53l1x` component were found in the ESPHome dev branch (see "Source verification note" below). Optimized for longer range; may be less precise at the 5–10 cm hold distance. More expensive.
 
-Why not preferred first: VL53L4CD is a better fit for the close-range bedside use case.
+Why not preferred first: VL53L4CD is a better fit for the close-range bedside use case, and VL53L1X ESPHome support cannot be assumed.
 
-Fallback note: If VL53L4CD support becomes a blocker, VL53L1X is the strongest ESPHome-supported fallback.
+Fallback note: VL53L1X should **not** be treated as a verified ESPHome fallback unless current official ESPHome documentation or a trusted maintained component source proves native or maintained support. Earlier notes that listed VL53L1X as natively supported should be considered out of date.
 
 ### VL6180X
 
@@ -257,11 +257,23 @@ Weaknesses: Limited range. Less community support. Not commonly available in STE
 
 Why not preferred: VL53L4CD provides better range and precision for this use case.
 
+### Source verification note
+
+The ESPHome-support column in the distance/proximity table above reflects the latest review. The following entries were checked directly against the current official ESPHome surface:
+
+- **VL53L0X:** Verified — official ESPHome docs page exists (`esphome.io/components/sensor/vl53l0x.html`) and the `vl53l0x` component is present in the ESPHome dev branch.
+- **VL53L4CD:** Not found at expected official locations — no `esphome.io/components/sensor/vl53l4cd.html` page and no `vl53l4cd` component in the ESPHome dev branch. A community / external component path is possible but was not verified in this review.
+- **VL53L1X:** Not found at expected official locations — no `esphome.io/components/sensor/vl53l1x.html` page and no `vl53l1x` component in the ESPHome dev branch.
+
+The other sensor rows in the table reflect earlier research and were not re-verified live in this review. Re-check official ESPHome docs and trusted maintained component sources before writing firmware that depends on any of them.
+
 ### Conclusion
 
-VL53L4CD is the preferred purchased sensor for reliable bedside hand-near / hold detection. APDS-9960 remains the preferred directional gesture sensor. APDS-9960 proximity alone is not preferred for deliberate hold detection because ToF gives real distance. VL53L4CD ESPHome support path must still be verified before production firmware. If VL53L4CD support becomes a blocker, evaluate VL53L1X or VL53L0X as ESPHome-supported ToF fallbacks.
+VL53L4CD remains the **planned** purchased sensor for reliable bedside hand-near / hold detection because it was purchased and fits the intended 5–10 cm hand-hold interaction. APDS-9960 remains the preferred directional gesture sensor. APDS-9960 proximity alone is not preferred for deliberate hold detection because ToF gives real distance.
 
-Sources: ST VL53L4CD datasheet, ESPHome VL53L0X/VL53L1X documentation, Adafruit VL53L4CD product page.
+The architecture is **not** being changed to VL53L0X. VL53L4CD is not being abandoned. Firmware implementation of the VL53L4CD hand-hold path must wait until the ESPHome support path is verified. If verification blocks progress, evaluate **VL53L0X as the verified ESPHome-supported ToF fallback only**, after explicit owner approval, with hold thresholds re-tuned for VL53L0X's higher 30 mm minimum range. VL53L1X is **not** assumed to be a verified ESPHome fallback.
+
+Sources: ST VL53L4CD datasheet, ESPHome VL53L0X documentation, Adafruit VL53L4CD product page. (Live ESPHome verification at the time of writing: VL53L0X docs and dev-branch component confirmed present; VL53L4CD and VL53L1X docs and dev-branch components not found at expected official locations.)
 
 ## Temperature / humidity sensor alternatives
 
