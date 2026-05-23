@@ -17,14 +17,23 @@ The goal is to confirm which GPIO assignments are backed by official upstream so
 
 ## 2. Upstream Sources Audited
 
-The following official Elecrow sources were audited from the `Elecrow-RD/CrowPanel-ESP32-Display-Course-File` repository:
+All source files were audited from the official Elecrow product repository for this specific board:
 
-1. **`ESP32_Display_1_28.ino`** — Factory Arduino sketch
-2. **`RotaryScreen_1_28_new.ino`** — Updated factory Arduino sketch
-3. **`esphome1.28.yaml`** — Official Elecrow ESPHome reference configuration
-4. **`128-lvgl-interface.yaml`** — Official Elecrow ESPHome LVGL lesson configuration
-5. **`CST816D.h`** — Touch driver header
-6. **`ESP32 Display-1.28-V1.0.pdf`** — Official Eagle schematic (V1.0)
+**Primary product repository:**  
+https://github.com/Elecrow-RD/CrowPanel-1.28inch-HMI-ESP32-Rotary-Display-240-240-IPS-Round-Touch-Knob-Screen
+
+This is the official Elecrow-maintained GitHub repository for the CrowPanel 1.28-inch HMI ESP32 Rotary Display (240×240 IPS Round Touch Knob Screen). It contains factory Arduino examples, ESPHome reference configurations, touch driver source, and the Eagle schematic for the board.
+
+**Files audited from this repository:**
+
+| # | File | Path in Repo | Content |
+| :---: | :--- | :--- | :--- |
+| 1 | `ESP32_Display_1_28.ino` | `example/ESP32_Display_1_28/` | Factory Arduino sketch with LovyanGFX display config |
+| 2 | `RotaryScreen_1_28_new.ino` | `example/RotaryScreen_1_28_new/` | Updated factory Arduino sketch with all pin defines |
+| 3 | `esphome1.28.yaml` | `example/esphome/` | Official Elecrow ESPHome reference configuration |
+| 4 | `128-lvgl-interface.yaml` | `example/esphome/Lesson04/` | Official Elecrow ESPHome LVGL lesson configuration |
+| 5 | `CST816D.h` | `example/ESP32_Display_1_28/` | Touch driver header (confirms I²C address `0x15`) |
+| 6 | `ESP32 Display-1.28-V1.0.pdf` | `Eagle_SCH&PCB/` | Official Eagle schematic (V1.0) |
 
 ---
 
@@ -86,4 +95,6 @@ While the source code confirms the intended design, the following items **must s
 
 The VelaDial repository's `hardware/elecrow_pinout.md` and `esphome/door_side_rotary.yaml` are **100% aligned** with the official Elecrow upstream sources. No discrepancies were found in the documented GPIO assignments.
 
-The project is cleared to proceed to physical validation (Step 15A) using the existing bring-up YAML, with high confidence that the pin mappings are correct for the V1.0 board design.
+**Physical status: NOT TESTED.** Source confirmation is not physical validation. All GPIO assignments above are confirmed against official source code and schematics only — not against the physical board in hand.
+
+The project is ready to proceed to physical validation (Step 15A) using the existing bring-up YAML, but final PASS/FAIL remains blocked until real hardware testing is completed.
