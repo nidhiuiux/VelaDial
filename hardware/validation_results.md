@@ -142,9 +142,32 @@ and any pinout deltas resolved.
 
 ---
 
+## Note: Draft Production YAML (Phase 1)
+
+**Date:** 2026-05-24  
+**Compile status:** PASSED in Manus environment using ESPHome 2026.5.0 (binary size 1,194,131 bytes, 0 errors, 4 non-blocking warnings). Flash and physical validation remain NOT TESTED.  
+
+A draft production-oriented YAML (`esphome/door_side_rotary.yaml`) has been created on branch `firmware/door-side-v1-draft`. The YAML compiled without errors in the sandbox environment (ESPHome 2026.5.0, ESP-IDF framework). It has **not** been flashed to or tested on physical hardware. The Step 15B gate above remains **unlifted** — physical board validation is still required before this draft can be considered production-ready.
+
+### Pin Cross-Validation (Source Research)
+
+The YAML pin assignments were cross-validated against **three independent sources** on 2026-05-24:
+
+| Source | URL | Agreement |
+| --- | --- | --- |
+| Elecrow Official GitHub (factory source code) | https://github.com/Elecrow-RD/CrowPanel-1.28inch-HMI-ESP32-Rotary-Display-240-240-IPS-Round-Touch-Knob-Screen | Full match |
+| Incipiens Community ESPHome YAML (XDA/HA) | https://github.com/Incipiens/Elecrow-Rotary-Displays | Full match |
+| Makerguides.com Tutorial (pin table) | https://www.makerguides.com/getting-started-crowpanel-1-28inch-hmi-esp32-rotary-display/ | Full match |
+
+All three sources confirm: Display SPI (SCLK=10, MOSI=11, CS=9, DC=3, RST=14), Backlight=GPIO46, Touch (SDA=6, SCL=7, INT=5, RST=13, addr 0x15), Encoder (A=45, B=42, SW=41), WS2812 (GPIO48, 5 LEDs), Power LED (GPIO40), invert_colors=true, touch transform (mirror_y=true, swap_xy=true).
+
+This does NOT replace physical validation. It confirms the YAML is aligned with all known documentation sources.
+
+---
+
 ## Document control
 
-**Version:** 0.1 — Step 15B scaffold created; physical results pending.  
+**Version:** 0.2 — Added Phase 1 draft YAML note; physical results still pending.  
 **Owner approval required:** Yes, before lifting the Step 15B gate.  
 **Next phase after sign-off:** Door-side sensor validation
 (`docs/13_Firmware_Prep_Validation_Plan.md` §3.C).
