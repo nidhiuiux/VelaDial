@@ -127,7 +127,7 @@ The execution must strictly follow this sequence.
 | Phase | Output | Details |
 | :--- | :--- | :--- |
 | **Phase 0 — Master Execution Roadmap** | `docs/MASTER_EXECUTION_ROADMAP.md` | Current task. PR required. |
-| **Phase 1 — Door-side ESP32-S3 firmware draft** | Draft update to `esphome/door_side_rotary.yaml` | Allowed now as DRAFT. Must mark compile/physical validation pending. No physical PASS claims. |
+| **Phase 1 — Door-side ESP32-S3 firmware draft** | Draft update to `esphome/door_side_rotary.yaml` | **IN REVIEW** — draft created; compile reported successful; physical validation pending; PR pending. |
 | **Phase 2 — Bedside ESP32-C6 APDS firmware draft** | Draft update to `esphome/bedside_gesture.yaml` | APDS left/right gestures, cooldown, no sensor fusion, no VL53L4CD unless separately approved. |
 | **Phase 3 — Raspberry Pi / Home Assistant setup guide** | `docs/setup/raspberry_pi_home_assistant_setup.md` | Document HA, ESPHome, and LocalTuya configuration. |
 | **Phase 4 — Full E2E setup and validation guide** | `docs/setup/full_e2e_setup_and_validation_guide.md` | Comprehensive testing plan. |
@@ -174,8 +174,8 @@ The following tests must be completed and recorded as PASS before the system is 
 
 | Objective | Status | Evidence | File / PR | Next Action |
 | :--- | :--- | :--- | :--- | :--- |
-| Roadmap | IN PROGRESS | This document | `docs/MASTER_EXECUTION_ROADMAP.md` | Complete Phase 0 |
-| Door firmware draft | NOT STARTED | None | `esphome/door_side_rotary.yaml` | Start Phase 1 |
+| Roadmap | DONE | This document | `docs/MASTER_EXECUTION_ROADMAP.md` | PR #18 merged |
+| Door firmware draft | IN REVIEW | None | `esphome/door_side_rotary.yaml` | draft created; compile reported successful; physical validation pending; PR #19 pending |
 | Bedside firmware draft | NOT STARTED | None | `esphome/bedside_gesture.yaml` | Start Phase 2 |
 | Raspberry Pi guide | NOT STARTED | None | `docs/setup/raspberry_pi_home_assistant_setup.md` | Start Phase 3 |
 | E2E guide | NOT STARTED | None | `docs/setup/full_e2e_setup_and_validation_guide.md` | Start Phase 4 |
