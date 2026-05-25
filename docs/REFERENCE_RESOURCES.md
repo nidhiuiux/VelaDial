@@ -45,6 +45,15 @@ These are primary reference sources for coding and research across all phases.
 - Home Assistant Backup Guide (Official Blog): https://www.home-assistant.io/blog/2025/01/03/3-2-1-backup/
 - Raspberry Pi Imager: https://www.raspberrypi.com/software/
 
+## ESPHome LVGL / UI (Phase 5)
+
+- ESPHome LVGL Main Docs: https://esphome.io/components/lvgl/
+- ESPHome LVGL Widgets: https://esphome.io/components/lvgl/widgets/
+- ESPHome LVGL Cookbook (Tips and Tricks): https://esphome.io/cookbook/lvgl/
+- LVGL Official Docs (Styles): https://lvgl.io/docs/open/8.2/overview/style
+- LVGL Official Docs (Themes): https://docs.lvgl.io/master/overview/style.html
+- HA Community LVGL Theming Discussion: https://community.home-assistant.io/t/theming-engine-for-esphome-lvgl/875097
+
 ## Research Directive
 
 For each phase, conduct extra-wide internet research beyond these sources.

@@ -178,8 +178,8 @@ The following tests must be completed and recorded as PASS before the system is 
 | Door firmware draft | DONE | PR #19 merged | `esphome/door_side_rotary.yaml` | compile PASSED; physical validation pending |
 | Bedside firmware draft | DONE | PR #20 merged | `esphome/bedside_gesture.yaml` | compile PASSED; physical validation pending |
 | Raspberry Pi guide | DONE | PR #21 merged | `docs/setup/raspberry_pi_home_assistant_setup.md` | HA/ESPHome/LocalTuya setup NOT TESTED |
-| E2E guide | IN REVIEW | None | `docs/setup/full_e2e_setup_and_validation_guide.md` | guide created; E2E validation NOT TESTED |
-| UI/UX guide integration | NOT STARTED | None | `docs/ui/ux_guide_integration_plan.md` | Start Phase 5 |
+| E2E guide | DONE | PR #22 merged | `docs/setup/full_e2e_setup_and_validation_guide.md` | E2E validation NOT TESTED |
+| UI/UX guide integration | IN REVIEW | None | `docs/ui/ux_guide_integration_plan.md` | plan created; Hardik UI/UX guide PENDING |
 | Claude review package | NOT STARTED | None | `docs/review/claude_review_package.md` | Start Phase 6 |
 | ELECROW physical validation | HARDWARE TEST PENDING | None | `hardware/validation_results.md` | Hardik to test |
 | Bedside APDS validation | HARDWARE TEST PENDING | None | `hardware/validation_results.md` | Hardik to test |
