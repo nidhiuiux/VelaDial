@@ -19,6 +19,8 @@
 #   7. Right swipe navigates in reverse.
 #   8. 3-dot indicator shows active page in amber.
 #   9. Brightness arc responds to knob rotation in ~5% steps.
+#       NOTE: Direct arc touch/drag is IMPLEMENTATION PENDING (LVGL 9 opaque
+#       struct prevents reading arc value in lambda). Knob is primary input.
 #  10. Brightness knob press returns to Power page.
 #  11. Presets page shows 4 buttons; tap applies preset.
 #  12. Knob rotation on Presets page cycles highlight; press applies.
@@ -901,6 +903,20 @@ script:
             - logger.log: "Blocked: swipe right rejected (wake-only-first)"
 
   # --- Guarded arc value change (called by brightness_arc on_value) ---
+  # IMPLEMENTATION PENDING: Direct arc touch/drag does NOT currently update
+  # brightness_pct. The LVGL 9 opaque struct prevents direct C API access
+  # (lv_arc_get_value fails with incomplete type error). The arc widget
+  # visually responds to touch drag, but the internal brightness_pct global
+  # is only updated via knob rotation (handle_knob_cw / handle_knob_ccw).
+  #
+  # Knob-based brightness control works correctly.
+  # Direct arc touch/drag brightness sync requires either:
+  #   (a) ESPHome LVGL component exposing arc value via a sensor/lambda, or
+  #   (b) A future ESPHome version providing safe arc value access.
+  #
+  # Until resolved, the arc is visual-only for touch; knob is the primary
+  # brightness input. The on_release still sends whatever brightness_pct
+  # holds (set by knob), so knob → release → HA command works correctly.
   - id: guarded_arc_value_change
     mode: single
     then:
@@ -908,19 +924,8 @@ script:
           condition:
             lambda: 'return id(display_awake) && !id(touch_woke_this_cycle);'
           then:
-            - lambda: |-
-                // The arc on_value fires when the user drags the arc knob.
-                // Since LVGL internally updates the arc widget value, we
-                // read brightness_pct from the arc's current value using
-                // the ESPHome LVGL component's internal state tracking.
-                // The knob handlers also update brightness_pct directly.
-                // Here we just ensure the label stays in sync.
-            - lvgl.label.update:
-                id: brightness_value_label
-                text: !lambda |-
-                  static char buf[8];
-                  snprintf(buf, sizeof(buf), "%d%%", id(brightness_pct));
-                  return buf;
+            - script.execute: screen_idle_timer
+            - logger.log: "Arc value changed (visual only — brightness_pct updated via knob only)"
           else:
             - logger.log: "Blocked: arc value change rejected (wake-only-first)"
 

@@ -174,8 +174,8 @@ The following tests must be completed and recorded as PASS before the system is 
 
 | Objective | Status | Evidence | File / PR | Next Action |
 | :--- | :--- | :--- | :--- | :--- |
-| Roadmap | IN PROGRESS | This document | `docs/MASTER_EXECUTION_ROADMAP.md` | Complete Phase 0 |
-| Door firmware draft | NOT STARTED | None | `esphome/door_side_rotary.yaml` | Start Phase 1 |
+| Roadmap | DONE | This document | `docs/MASTER_EXECUTION_ROADMAP.md` | PR #18 merged |
+| Door firmware draft | IN REVIEW | None | `esphome/door_side_rotary.yaml` | draft created; compile reported successful; physical validation pending; PR #19 pending |
 | Bedside firmware draft | NOT STARTED | None | `esphome/bedside_gesture.yaml` | Start Phase 2 |
 | Raspberry Pi guide | NOT STARTED | None | `docs/setup/raspberry_pi_home_assistant_setup.md` | Start Phase 3 |
 | E2E guide | NOT STARTED | None | `docs/setup/full_e2e_setup_and_validation_guide.md` | Start Phase 4 |
