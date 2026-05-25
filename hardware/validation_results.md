@@ -186,9 +186,20 @@ A comprehensive setup guide has been created documenting the intended deployment
 
 ---
 
+## Phase 4 — Full E2E Setup and Validation Guide
+
+**Date:** 2026-05-25  
+**Status:** E2E guide created (`docs/setup/full_e2e_setup_and_validation_guide.md`)  
+**E2E Validation:** NOT TESTED  
+**Physical PASS Results Added:** No  
+
+A full E2E setup and validation guide has been created. It defines the complete validation sequence for door-side, bedside, HA/LocalTuya command path, and full system scenarios. All results remain NOT TESTED until Hardik performs them on physical hardware.
+
+---
+
 ## Document control
 
-**Version:** 0.3 — Added Phase 3 setup guide note; HA/ESPHome/LocalTuya setup NOT TESTED.  
+**Version:** 0.4 — Added Phase 4 E2E guide note; all E2E validation NOT TESTED.  
 **Owner approval required:** Yes, before lifting the Step 15B gate.  
 **Next phase after sign-off:** Door-side sensor validation
 (`docs/13_Firmware_Prep_Validation_Plan.md` §3.C).
