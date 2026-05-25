@@ -176,8 +176,8 @@ The following tests must be completed and recorded as PASS before the system is 
 | :--- | :--- | :--- | :--- | :--- |
 | Roadmap | DONE | This document | `docs/MASTER_EXECUTION_ROADMAP.md` | PR #18 merged |
 | Door firmware draft | DONE | PR #19 merged | `esphome/door_side_rotary.yaml` | compile PASSED; physical validation pending |
-| Bedside firmware draft | IN REVIEW | None | `esphome/bedside_gesture.yaml` | draft created; compile PASSED; physical validation pending |
-| Raspberry Pi guide | NOT STARTED | None | `docs/setup/raspberry_pi_home_assistant_setup.md` | Start Phase 3 |
+| Bedside firmware draft | DONE | PR #20 merged | `esphome/bedside_gesture.yaml` | compile PASSED; physical validation pending |
+| Raspberry Pi guide | IN REVIEW | None | `docs/setup/raspberry_pi_home_assistant_setup.md` | guide created; HA/ESPHome/LocalTuya setup NOT TESTED |
 | E2E guide | NOT STARTED | None | `docs/setup/full_e2e_setup_and_validation_guide.md` | Start Phase 4 |
 | UI/UX guide integration | NOT STARTED | None | `docs/ui/ux_guide_integration_plan.md` | Start Phase 5 |
 | Claude review package | NOT STARTED | None | `docs/review/claude_review_package.md` | Start Phase 6 |
