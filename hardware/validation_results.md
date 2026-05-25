@@ -142,12 +142,22 @@ and any pinout deltas resolved.
 
 ---
 
-## Note: Draft Production YAML (Phase 1)
-
-**Date:** 2026-05-24  
-**Compile status:** PASSED in Manus environment using ESPHome 2026.5.0 (binary size 1,194,131 bytes, 0 errors, 4 non-blocking warnings). Flash and physical validation remain NOT TESTED.  
-
-A draft production-oriented YAML (`esphome/door_side_rotary.yaml`) has been created on branch `firmware/door-side-v1-draft`. The YAML compiled without errors in the sandbox environment (ESPHome 2026.5.0, ESP-IDF framework). It has **not** been flashed to or tested on physical hardware. The Step 15B gate above remains **unlifted** — physical board validation is still required before this draft can be considered production-ready.
+## Phase 1 — Door-side ESP32-S3 Firmware Draft
+	
+	**Date:** 2026-05-24  
+	**Status:** Draft created (PR #19 merged)  
+	**Compile status:** PASSED in Manus environment using ESPHome 2026.5.0 (binary size 1,194,131 bytes, 0 errors, 4 non-blocking warnings). Flash and physical validation remain NOT TESTED.  
+	
+	A draft production-oriented YAML (`esphome/door_side_rotary.yaml`) has been created. The YAML compiled without errors in the sandbox environment (ESPHome 2026.5.0, ESP-IDF framework). It has **not** been flashed to or tested on physical hardware. The Step 15B gate above remains **unlifted** — physical board validation is still required before this draft can be considered production-ready.
+	
+	## Phase 2 — Bedside ESP32-C6 APDS Firmware Draft
+	
+	**Date:** 2026-05-24  
+	**Status:** Draft created  
+	**Compile status:** PASSED (ESPHome 2026.5.0, ESP-IDF, 0 errors, 0 warnings, 181.5s)  
+	**Physical Validation:** NOT TESTED  
+	
+	A draft production-oriented YAML (`esphome/bedside_gesture.yaml`) has been created on branch `firmware/bedside-apds-v1-draft`. It uses native ESPHome APDS-9960 gesture support. No sensor fusion is implemented. Physical validation remains pending.
 
 ### Pin Cross-Validation (Source Research)
 

@@ -1,6 +1,29 @@
-# VelaDial bedside gesture controller
-# Hardware: ESP32-C6 + APDS-9960 gesture/proximity sensor
-# Purpose: silent local control of the bedroom light group through Home Assistant
+# VelaDial — Bedside Gesture Controller
+# ===========================================================================
+# Hardware:  Adafruit ESP32-C6 Feather + APDS-9960 gesture/proximity sensor
+# Status:    DRAFT — COMPILE PASSED / HARDWARE VALIDATION PENDING
+# Version:   v1 production-oriented draft
+# Branch:    firmware/bedside-apds-v1-draft
+# ---------------------------------------------------------------------------
+# COMPILE:   esphome compile esphome/bedside_gesture.yaml
+# FLASH:     esphome run esphome/bedside_gesture.yaml
+# ---------------------------------------------------------------------------
+# ACCEPTANCE TESTS (all require physical hardware):
+#   1. Device boots and connects to Wi-Fi and Home Assistant API.
+#   2. I2C scan detects APDS-9960 at address 0x39.
+#   3. Left gesture turns OFF light.bedroom_group.
+#   4. Right gesture turns ON light.bedroom_group.
+#   5. Cooldown period (2s) prevents rapid repeated triggers.
+#   6. Proximity sensor reports values (if hardware supports concurrent use).
+#   7. Last gesture diagnostic updates correctly.
+# ---------------------------------------------------------------------------
+# IMPLEMENTATION NOTES:
+# - ESPHome natively supports APDS-9960 gestures via binary_sensor.
+# - Adafruit ESP32-C6 Feather requires GPIO20 (NEOPIXEL_I2C_POWER) to be HIGH
+#   for the STEMMA QT I2C port to function.
+# - No sensor fusion is implemented in v1.
+# - No VL53L4CD logic is included.
+# ===========================================================================
 
 substitutions:
   device_name: bedside-gesture-controller
@@ -10,6 +33,11 @@ substitutions:
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
+  # Enable I2C power on boot for Adafruit ESP32-C6 Feather STEMMA QT port
+  on_boot:
+    - priority: 800
+      then:
+        - output.turn_on: i2c_power
 
 esp32:
   board: esp32-c6-devkitc-1
@@ -24,7 +52,7 @@ api:
 
 ota:
   - platform: esphome
-    password: !secret ota_key
+    password: !secret ota_password
 
 wifi:
   ssid: !secret wifi_ssid
@@ -35,47 +63,132 @@ wifi:
 
 captive_portal:
 
-i2c:
-  sda: SDA
-  scl: SCL
-  scan: true
+# ===========================================================================
+# HARDWARE CONFIGURATION
+# ===========================================================================
 
+# Adafruit ESP32-C6 Feather I2C Power (GPIO20)
+output:
+  - platform: gpio
+    pin: GPIO20
+    id: i2c_power
+
+# I2C Bus (Adafruit ESP32-C6 Feather defaults: SDA=19, SCL=18)
+i2c:
+  sda: GPIO19
+  scl: GPIO18
+  scan: true
+  frequency: 400kHz
+
+# APDS-9960 Sensor Hub
 apds9960:
   address: 0x39
   update_interval: 60s
+  # Conservative gesture settings
+  gesture_led_drive: 100mA
+  gesture_gain: 4x
+  gesture_wait_time: 2.8ms
+
+# ===========================================================================
+# GLOBALS & SCRIPTS (Cooldown Logic)
+# ===========================================================================
+
+globals:
+  - id: gesture_cooldown_active
+    type: bool
+    initial_value: 'false'
+
+script:
+  - id: start_cooldown
+    mode: restart
+    then:
+      - globals.set:
+          id: gesture_cooldown_active
+          value: 'true'
+      - delay: 2s
+      - globals.set:
+          id: gesture_cooldown_active
+          value: 'false'
+
+# ===========================================================================
+# GESTURE SENSORS (Native ESPHome Support)
+# ===========================================================================
 
 binary_sensor:
+  # LEFT GESTURE -> LIGHTS OFF
   - platform: apds9960
     direction: LEFT
-    name: "Gesture Left - Lights Off"
-    id: gesture_left_off
+    name: "Gesture Left"
+    id: gesture_left
     on_press:
-      - homeassistant.action:
-          action: light.turn_off
-          data:
-            entity_id: ${light_group}
+      - if:
+          condition:
+            lambda: 'return !id(gesture_cooldown_active);'
+          then:
+            - logger.log: "Gesture LEFT detected -> Turning OFF lights"
+            - text_sensor.template.publish:
+                id: last_gesture
+                state: "LEFT (Off)"
+            - homeassistant.action:
+                action: light.turn_off
+                data:
+                  entity_id: ${light_group}
+            - script.execute: start_cooldown
+          else:
+            - logger.log: "Gesture LEFT ignored (cooldown active)"
 
+  # RIGHT GESTURE -> LIGHTS ON
   - platform: apds9960
     direction: RIGHT
-    name: "Gesture Right - Lights On"
-    id: gesture_right_on
+    name: "Gesture Right"
+    id: gesture_right
     on_press:
-      - homeassistant.action:
-          action: light.turn_on
-          data:
-            entity_id: ${light_group}
+      - if:
+          condition:
+            lambda: 'return !id(gesture_cooldown_active);'
+          then:
+            - logger.log: "Gesture RIGHT detected -> Turning ON lights"
+            - text_sensor.template.publish:
+                id: last_gesture
+                state: "RIGHT (On)"
+            - homeassistant.action:
+                action: light.turn_on
+                data:
+                  entity_id: ${light_group}
+            - script.execute: start_cooldown
+          else:
+            - logger.log: "Gesture RIGHT ignored (cooldown active)"
+
+# ===========================================================================
+# DIAGNOSTIC SENSORS
+# ===========================================================================
 
 sensor:
+  # Proximity sensor (Note: may conflict with gestures on some hardware)
   - platform: apds9960
     type: PROXIMITY
-    name: "Proximity Sensor"
+    name: "Proximity"
     id: proximity_sensor
-    on_value_range:
-      - above: 200
-        then:
-          - homeassistant.action:
-              action: light.turn_on
-              data:
-                entity_id: ${light_group}
-                brightness_pct: "10"
-          - delay: 2s
+
+  # Uptime
+  - platform: uptime
+    name: "Uptime"
+
+  # Wi-Fi Signal
+  - platform: wifi_signal
+    name: "Wi-Fi Signal"
+    update_interval: 60s
+
+text_sensor:
+  # Last Gesture State
+  - platform: template
+    name: "Last Gesture"
+    id: last_gesture
+    icon: "mdi:hand-back-left"
+
+  # Wi-Fi Info
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+    ssid:
+      name: "SSID"
