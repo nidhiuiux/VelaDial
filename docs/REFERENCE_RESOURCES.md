@@ -22,6 +22,15 @@ These are primary reference sources for coding and research across all phases.
 - Home Assistant Installation (RPi): https://www.home-assistant.io/installation/raspberrypi/
 - YouTube Reference: https://share.google/VyADqjSO8bZBA0WUs
 
+## Bedside / APDS-9960
+
+- ESPHome APDS9960 Docs: https://esphome.io/components/sensor/apds9960/
+- Adafruit ESP32-C6 Feather Pinout: https://learn.adafruit.com/adafruit-esp32-c6-feather/pinouts
+- Adafruit ESP32-C6 I2C: https://learn.adafruit.com/adafruit-esp32-c6-feather/i2c
+- ESPHome NeoPixel on C6 (GPIO20 power): https://www.williamreading.com/2025/10/10/esphome-neopixel-adafruit-esp32-c6.html
+- SparkFun APDS-9960 Hookup Guide: https://learn.sparkfun.com/tutorials/apds-9960-rgb-and-gesture-sensor-hookup-guide/all
+- APDS-9960 Datasheet: https://cdn.sparkfun.com/datasheets/Sensors/Proximity/apds9960.pdf
+
 ## Research Directive
 
 For each phase, conduct extra-wide internet research beyond these sources.
