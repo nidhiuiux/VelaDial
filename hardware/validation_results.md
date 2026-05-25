@@ -175,9 +175,20 @@ This does NOT replace physical validation. It confirms the YAML is aligned with 
 
 ---
 
+## Phase 3 — Raspberry Pi / Home Assistant Setup Guide
+
+**Date:** 2026-05-25  
+**Status:** Setup guide created (`docs/setup/raspberry_pi_home_assistant_setup.md`)  
+**HA / ESPHome / LocalTuya Setup:** NOT TESTED  
+**Physical PASS Results Added:** No  
+
+A comprehensive setup guide has been created documenting the intended deployment path for Home Assistant OS on Raspberry Pi, ESPHome add-on configuration, LocalTuya integration, and `light.bedroom_group` creation. All steps remain NOT TESTED until Hardik performs the physical setup.
+
+---
+
 ## Document control
 
-**Version:** 0.2 — Added Phase 1 draft YAML note; physical results still pending.  
+**Version:** 0.3 — Added Phase 3 setup guide note; HA/ESPHome/LocalTuya setup NOT TESTED.  
 **Owner approval required:** Yes, before lifting the Step 15B gate.  
 **Next phase after sign-off:** Door-side sensor validation
 (`docs/13_Firmware_Prep_Validation_Plan.md` §3.C).

@@ -31,6 +31,20 @@ These are primary reference sources for coding and research across all phases.
 - SparkFun APDS-9960 Hookup Guide: https://learn.sparkfun.com/tutorials/apds-9960-rgb-and-gesture-sensor-hookup-guide/all
 - APDS-9960 Datasheet: https://cdn.sparkfun.com/datasheets/Sensors/Proximity/apds9960.pdf
 
+## Home Assistant / ESPHome / LocalTuya (Phase 3)
+
+- Home Assistant RPi Installation (Official): https://www.home-assistant.io/installation/raspberrypi/
+- Home Assistant Onboarding: https://www.home-assistant.io/getting-started/onboarding/
+- ESPHome Getting Started with HA (Official): https://esphome.io/guides/getting_started_hassio/
+- ESPHome Integration in HA: https://www.home-assistant.io/integrations/esphome/
+- Home Assistant Group Integration (Light Groups): https://www.home-assistant.io/integrations/group/
+- LocalTuya GitHub (Community): https://github.com/rospogrigio/localtuya
+- LocalTuya Documentation (Community): https://xzetsubou.github.io/hass-localtuya/
+- HACS (Home Assistant Community Store): https://hacs.xyz/
+- Tuya IoT Platform (for local key extraction): https://developer.tuya.com/en/docs/iot/Home-assistant-tuya-intergration?id=Kb0eqjig0utdd
+- Home Assistant Backup Guide (Official Blog): https://www.home-assistant.io/blog/2025/01/03/3-2-1-backup/
+- Raspberry Pi Imager: https://www.raspberrypi.com/software/
+
 ## Research Directive
 
 For each phase, conduct extra-wide internet research beyond these sources.
