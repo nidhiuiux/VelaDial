@@ -197,9 +197,21 @@ A full E2E setup and validation guide has been created. It defines the complete 
 
 ---
 
+## Phase 5 — UI/UX Guide Integration Plan
+
+**Date:** 2026-05-25  
+**Status:** UI/UX integration plan created (`docs/ui/ux_guide_integration_plan.md`)  
+**UI Implementation:** NOT PERFORMED  
+**Hardik UI/UX Guide:** PENDING HARDIK INPUT  
+**Physical PASS Results Added:** No  
+
+A UI/UX guide integration plan has been created documenting the agreed visual themes, locked v1 rules, pending inputs from Hardik, integration decision matrix, and acceptance criteria for future UI implementation. No UI code changes were made. No ESPHome YAML was edited. Physical validation remains NOT TESTED.
+
+---
+
 ## Document control
 
-**Version:** 0.4 — Added Phase 4 E2E guide note; all E2E validation NOT TESTED.  
+**Version:** 0.5 — Added Phase 5 UI/UX integration plan note; no UI implementation performed.  
 **Owner approval required:** Yes, before lifting the Step 15B gate.  
 **Next phase after sign-off:** Door-side sensor validation
 (`docs/13_Firmware_Prep_Validation_Plan.md` §3.C).
