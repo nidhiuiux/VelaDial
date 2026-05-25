@@ -209,9 +209,20 @@ A UI/UX guide integration plan has been created documenting the agreed visual th
 
 ---
 
+## Phase 6 — Claude Review Package
+
+**Date:** 2026-05-25  
+**Status:** Claude review package created (`docs/review/claude_review_package.md`)  
+**Validation Performed:** No  
+**Physical PASS Results Added:** No  
+
+A Claude review package has been created for independent review of the VelaDial repository after Phases 0–5. This is a documentation-only deliverable. No validation was performed, no firmware was changed, and all hardware/E2E validation remains NOT TESTED.
+
+---
+
 ## Document control
 
-**Version:** 0.5 — Added Phase 5 UI/UX integration plan note; no UI implementation performed.  
+**Version:** 0.6 — Added Phase 6 Claude review package note; no validation performed.  
 **Owner approval required:** Yes, before lifting the Step 15B gate.  
 **Next phase after sign-off:** Door-side sensor validation
 (`docs/13_Firmware_Prep_Validation_Plan.md` §3.C).
