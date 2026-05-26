@@ -81,6 +81,22 @@ i2c:
   frequency: 400kHz
 
 # APDS-9960 Sensor Hub
+#
+# NOTE on `update_interval`:
+#   Gesture triggers below use ESPHome's native APDS-9960 gesture binary
+#   sensors (`platform: apds9960`, `direction: LEFT/RIGHT`). The chip's
+#   gesture engine runs continuously in hardware and produces events via
+#   interrupts — it is NOT polled at this interval.
+#
+#   The `update_interval: 60s` here governs the hub-level polling for
+#   ambient/proximity/color diagnostic publishes (the `sensor:` entries
+#   below, e.g. proximity). It does NOT throttle gesture detection latency.
+#
+#   Earlier doc 13 (`docs/13_Firmware_Prep_Validation_Plan.md`) flagged the
+#   60s interval as a "known issue" on the bring-up YAML. That note assumed
+#   gestures were polled; they are not. Physical validation on real hardware
+#   is still required to confirm real-world gesture responsiveness — see
+#   `hardware/validation_results.md`.
 apds9960:
   address: 0x39
   update_interval: 60s

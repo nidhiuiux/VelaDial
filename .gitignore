@@ -13,3 +13,12 @@ Thumbs.db
 # Python/cache artifacts if local helper scripts are added later
 __pycache__/
 *.py[cod]
+
+# Secrets — never commit real ESPHome/Home Assistant secrets.
+# Use *.example files (e.g. esphome/secrets.yaml.example) for placeholders.
+secrets.yaml
+esphome/secrets.yaml
+**/secrets.yaml
+*.local.yaml
+*.secret
+*.key
