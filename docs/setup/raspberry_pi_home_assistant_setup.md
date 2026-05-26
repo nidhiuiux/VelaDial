@@ -112,6 +112,13 @@ A stable network is critical for the VelaDial system.
 
 Create a `secrets.yaml` file in your `/config/esphome/` directory. **Do not commit this file to version control.**
 
+A ready-to-copy template is tracked in the repository at
+[`esphome/secrets.yaml.example`](../../esphome/secrets.yaml.example). Copy it
+to `secrets.yaml` and fill in real values. The repo's `.gitignore` excludes
+`secrets.yaml`, `esphome/secrets.yaml`, `**/secrets.yaml`, `*.local.yaml`,
+`*.secret`, and `*.key` so a populated `secrets.yaml` won't be accidentally
+committed — but never rely on that alone; double-check before pushing.
+
 Sample `secrets.yaml` with placeholders:
 
 ```yaml
