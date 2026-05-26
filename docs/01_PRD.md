@@ -52,7 +52,7 @@ A smart-home builder who wants a custom physical interface for local RGB lightin
 
 - ESP32-C6 with APDS-9960 gesture sensor.
 - Left/right hand gestures for lights off/on.
-- Reliable hand-hold nightlight behavior using VL53L4CD distance sensing.
+- Reliable hand-hold nightlight behavior using VL53L4CD distance sensing. **v1 status: deferred to v2 / future** — Hardik selected Option B in `docs/vl53l4cd_support_verification.md` on 2026-05-25. v1 ships without VL53L4CD firmware; APDS-9960 gestures are the only bedside input in v1.
 - APDS-9960 remains responsible for directional left/right gestures.
 - Sensor behavior must not cause accidental full-brightness light changes.
 - No physical click required during normal use.
@@ -92,6 +92,9 @@ The main door-side UI remains focused on three pages:
 - No production firmware changes in this documentation step.
 - No second SHT45 sensor for bedside in the first build.
 - No I2C multiplexer required for the first-build architecture.
+- No VL53L4CD firmware, ESPHome YAML, Home Assistant logic, or UI element in v1 — deferred to v2 / future (Option B, recorded 2026-05-25). The sensor remains physically present on the bedside breadboard but is unused by v1 software.
+- No VL53L0X fallback in v1 (Option C not approved).
+- No APDS-9960 / VL53L4CD sensor fusion in v1 (independently a v2 / future enhancement).
 - Cloud-only Tuya control.
 - Voice assistant dependency for the main workflow.
 - Complex animations, video playback, or heavy graphics on the display.

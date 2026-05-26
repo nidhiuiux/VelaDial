@@ -28,12 +28,14 @@ Each ESPHome node has its own independent I2C bus. Sensors are connected via STE
 
 ### Bedside node I2C bus
 
-| Sensor | I2C Address | ESPHome Platform | Entity Type |
-| :--- | :--- | :--- | :--- |
-| APDS-9960 | `0x39` | `apds9960` (native) | Binary sensor (gestures), sensor (proximity) |
-| VL53L4CD | `0x29` | Needs verification | Sensor (distance in mm) |
+| Sensor | I2C Address | ESPHome Platform | Entity Type | v1 status |
+| :--- | :--- | :--- | :--- | :--- |
+| APDS-9960 | `0x39` | `apds9960` (native) | Binary sensor (gestures), sensor (proximity) | v1 active |
+| VL53L4CD | `0x29` | Needs verification | Sensor (distance in mm) | **v1 deferred** — Option B (2026-05-25); no v1 firmware references VL53L4CD |
 
 TSL2591 and VL53L4CD both use address `0x29` but are on different ESP32 nodes, so there is no conflict in the first-build architecture.
+
+> **v1 scope note:** All rows below that reference VL53L4CD as a source (or VL53L4CD-derived states such as `hand_present`, `hand_holding`, `nightlight_triggered`, `bedside_distance`, `bedside_hand_near`, `bedside_nightlight_hold`) describe the **planned v2 / future** schema. v1 does **not** materialize these entities — see `docs/vl53l4cd_support_verification.md`.
 
 ## Home Assistant lighting model
 
@@ -73,10 +75,10 @@ Expected entities:
 
 Expected entities:
 
-- Left gesture binary sensor.
-- Right gesture binary sensor.
-- Proximity sensor (APDS-9960).
-- `sensor.bedside_distance` — VL53L4CD distance reading in mm. Used internally for hand-hold nightlight detection and exposed to Home Assistant for diagnostics.
+- Left gesture binary sensor. **(v1 active)**
+- Right gesture binary sensor. **(v1 active)**
+- Proximity sensor (APDS-9960). **(v1 active — diagnostic)**
+- `sensor.bedside_distance` — VL53L4CD distance reading in mm. Used internally for hand-hold nightlight detection and exposed to Home Assistant for diagnostics. **(v1 deferred — VL53L4CD Option B, 2026-05-25; not materialized in v1 firmware.)**
 
 Exact generated names depend on ESPHome naming and friendly-name settings.
 
@@ -95,13 +97,13 @@ These are not raw sensor readings. They are computed states derived from sensor 
 
 ### Bedside node derived states
 
-| Derived State | Source | Logic | Used By |
-| :--- | :--- | :--- | :--- |
-| `hand_present` | VL53L4CD distance | `true` if distance < 300 mm for > 100 ms. `false` otherwise. | APDS-9960 wake trigger |
-| `hand_holding` | VL53L4CD distance + timer | `true` if distance is 50–100 mm continuously for > 1.5 s. | Nightlight scene trigger |
-| `gesture_ready` | `hand_present` state | `true` when `hand_present` is `true` and APDS-9960 is powered up and ready to detect. | Gesture detection gate |
-| `nightlight_triggered` | `hand_holding` transition | One-shot `true` on rising edge of `hand_holding`. Resets after action is sent. Cooldown of 5 s prevents re-trigger. | HA service call: nightlight scene |
-| `gesture_cooldown` | Last gesture timestamp | Blocks new gesture detection for 1 s after a successful gesture to prevent double-fires. | Gesture debounce |
+| Derived State | Source | Logic | Used By | v1 status |
+| :--- | :--- | :--- | :--- | :--- |
+| `hand_present` | VL53L4CD distance | `true` if distance < 300 mm for > 100 ms. `false` otherwise. | APDS-9960 wake trigger | **v1 deferred** (VL53L4CD Option B) |
+| `hand_holding` | VL53L4CD distance + timer | `true` if distance is 50–100 mm continuously for > 1.5 s. | Nightlight scene trigger | **v1 deferred** (VL53L4CD Option B) |
+| `gesture_ready` | `hand_present` state | `true` when `hand_present` is `true` and APDS-9960 is powered up and ready to detect. | Gesture detection gate | **v1 deferred** (depends on VL53L4CD; v1 APDS gestures run unconditionally) |
+| `nightlight_triggered` | `hand_holding` transition | One-shot `true` on rising edge of `hand_holding`. Resets after action is sent. Cooldown of 5 s prevents re-trigger. | HA service call: nightlight scene | **v1 deferred** (VL53L4CD Option B) |
+| `gesture_cooldown` | Last gesture timestamp | Blocks new gesture detection for 1 s after a successful gesture to prevent double-fires. | Gesture debounce | v1 active |
 
 ### Home Assistant derived entities (optional, created via template sensors)
 
@@ -129,15 +131,15 @@ The following table lists the expected entity IDs as they will appear in Home As
 
 #### Bedside node entities (ESPHome device name: `veladial_bedside`)
 
-| Entity ID | Type | Source | Update Rate | Notes |
-| :--- | :--- | :--- | :--- | :--- |
-| `binary_sensor.veladial_bedside_gesture_left` | binary_sensor | APDS-9960 | On event | Momentary pulse on left swipe |
-| `binary_sensor.veladial_bedside_gesture_right` | binary_sensor | APDS-9960 | On event | Momentary pulse on right swipe |
-| `sensor.veladial_bedside_proximity` | sensor | APDS-9960 | 200 ms | Raw proximity 0–255 |
-| `sensor.veladial_bedside_distance` | sensor | VL53L4CD | 200 ms | Distance in mm, 0–1300 range |
-| `binary_sensor.veladial_bedside_hand_present` | binary_sensor | VL53L4CD (derived) | On change | Hand detected within 300 mm |
-| `binary_sensor.veladial_bedside_hand_holding` | binary_sensor | VL53L4CD (derived) | On change | Hand held at 50–100 mm for > 1.5 s |
-| `sensor.veladial_bedside_wifi_signal` | sensor | WiFi | 60 s | dBm signal strength |
+| Entity ID | Type | Source | Update Rate | Notes | v1 status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `binary_sensor.veladial_bedside_gesture_left` | binary_sensor | APDS-9960 | On event | Momentary pulse on left swipe | v1 active |
+| `binary_sensor.veladial_bedside_gesture_right` | binary_sensor | APDS-9960 | On event | Momentary pulse on right swipe | v1 active |
+| `sensor.veladial_bedside_proximity` | sensor | APDS-9960 | 200 ms | Raw proximity 0–255 | v1 active (diagnostic) |
+| `sensor.veladial_bedside_distance` | sensor | VL53L4CD | 200 ms | Distance in mm, 0–1300 range | **v1 deferred** (VL53L4CD Option B) |
+| `binary_sensor.veladial_bedside_hand_present` | binary_sensor | VL53L4CD (derived) | On change | Hand detected within 300 mm | **v1 deferred** (VL53L4CD Option B) |
+| `binary_sensor.veladial_bedside_hand_holding` | binary_sensor | VL53L4CD (derived) | On change | Hand held at 50–100 mm for > 1.5 s | **v1 deferred** (VL53L4CD Option B) |
+| `sensor.veladial_bedside_wifi_signal` | sensor | WiFi | 60 s | dBm signal strength | v1 active |
 
 #### Home Assistant template entities (optional, configured in HA not ESPHome)
 
@@ -150,15 +152,15 @@ The following table lists the expected entity IDs as they will appear in Home As
 
 Initial Home Assistant actions:
 
-- Turn the group off for a left gesture.
-- Turn the group on for a right gesture.
-- Turn the group on at low brightness and warm color for nightlight (triggered by VL53L4CD hand-hold at 5–10 cm for 1.5 s).
-- Set brightness from the rotary control.
+- Turn the group off for a left gesture. **(v1 active)**
+- Turn the group on for a right gesture. **(v1 active)**
+- Turn the group on at low brightness and warm color for nightlight (triggered by VL53L4CD hand-hold at 5–10 cm for 1.5 s). **(v1 deferred — VL53L4CD Option B, 2026-05-25.)**
+- Set brightness from the rotary control. **(v1 active)**
 
 ### Sensor-driven local behaviors (internal to ESPHome, not HA actions)
 
-- TSL2591 lux reading → door-side backlight PWM adjustment (adaptive brightness).
-- VL53L4CD distance → APDS-9960 wake trigger (sensor fusion on bedside node).
+- TSL2591 lux reading → door-side backlight PWM adjustment (adaptive brightness). **(v1 active.)**
+- VL53L4CD distance → APDS-9960 wake trigger (sensor fusion on bedside node). **(v1 deferred — VL53L4CD Option B; sensor fusion is independently a v2 / future enhancement.)**
 
 These behaviors run inside the ESPHome firmware and do not require Home Assistant round-trips.
 
@@ -194,14 +196,14 @@ These are example aliases/helper names only. Final production entity IDs depend 
 
 ## Sensor and entity behavior mapping
 
-| Input/entity | Condition | Action |
-| --- | --- | --- |
-| TSL2591 lux | low ambient light | dim display/backlight |
-| TSL2591 lux | bright room | increase display readability |
-| VL53L4CD distance | hand steady 5–10 cm for about 1.5 s | trigger nightlight mode |
-| APDS gesture left | valid gesture + cooldown clear | turn bedroom group off |
-| APDS gesture right | valid gesture + cooldown clear | turn bedroom group on |
-| SHT45 temp/humidity | available | expose diagnostics only |
+| Input/entity | Condition | Action | v1 status |
+| --- | --- | --- | --- |
+| TSL2591 lux | low ambient light | dim display/backlight | v1 active |
+| TSL2591 lux | bright room | increase display readability | v1 active |
+| VL53L4CD distance | hand steady 5–10 cm for about 1.5 s | trigger nightlight mode | **v1 deferred** (Option B) |
+| APDS gesture left | valid gesture + cooldown clear | turn bedroom group off | v1 active |
+| APDS gesture right | valid gesture + cooldown clear | turn bedroom group on | v1 active |
+| SHT45 temp/humidity | available | expose diagnostics only | v1 active (secondary) |
 
 ## Security and privacy model
 
