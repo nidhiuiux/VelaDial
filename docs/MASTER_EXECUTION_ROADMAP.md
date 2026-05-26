@@ -8,9 +8,13 @@
 
 ## SECTION A — Current Project State
 
-The project has established a solid documentation foundation, but firmware and hardware validation remain in preliminary states. Pull requests #1 through #17 have been successfully merged. Notably, PR #16 added the `hardware/validation_results.md` file, and PR #17 added the `docs/validation/elecrow_source_confirmation_matrix.md` file.
+The project has established a solid documentation foundation, but firmware and hardware validation remain in preliminary states.
 
-While the ELECROW GPIOs are source-confirmed, physical hardware validation remains strictly **NOT TESTED**. The existing YAML files (`esphome/door_side_rotary.yaml` and `esphome/bedside_gesture.yaml`) are bring-up/starter configurations only. No production firmware has been validated, and no hardware PASS results currently exist.
+Pull requests **#1 through #24** have been merged. The most recent set (PRs #18–#24) added the Master Execution Roadmap, door-side firmware draft, bedside firmware draft, Raspberry Pi / Home Assistant setup guide, full E2E setup and validation guide, UI/UX guide integration plan, and Claude review package.
+
+Subsequent to PR #24, an **independent Claude review** of PRs #15–#24 was completed and returned a verdict of **REQUEST CHANGES** with three blocking items: Step 15B gate crossed by PR #19 (process), VL53L4CD A/B/C decision pending (Hardik), and `.gitignore` missing `secrets.yaml` patterns (security). An **immediate cleanup PR** addressing the security fix, the gate waiver note, preset numeric types, an APDS update_interval clarification, and this roadmap update is in review.
+
+While the ELECROW GPIOs are source-confirmed, physical hardware validation remains strictly **NOT TESTED**. The current YAML files (`esphome/door_side_rotary.yaml` and `esphome/bedside_gesture.yaml`) are production-oriented **drafts** — compile-time reviewed only — and are explicitly labeled `DRAFT — COMPILE PASSED / HARDWARE VALIDATION PENDING` in their headers. No physical PASS results currently exist.
 
 ---
 
@@ -180,13 +184,16 @@ The following tests must be completed and recorded as PASS before the system is 
 | Raspberry Pi guide | DONE | PR #21 merged | `docs/setup/raspberry_pi_home_assistant_setup.md` | HA/ESPHome/LocalTuya setup NOT TESTED |
 | E2E guide | DONE | PR #22 merged | `docs/setup/full_e2e_setup_and_validation_guide.md` | E2E validation NOT TESTED |
 | UI/UX guide integration | DONE | PR #23 merged | `docs/ui/ux_guide_integration_plan.md` | Hardik UI/UX guide PENDING |
-| Claude review package | IN REVIEW | None | `docs/review/claude_review_package.md` | package created; Claude review pending |
+| Claude review package | DONE | PR #24 merged | `docs/review/claude_review_package.md` | Claude review completed |
+| Claude independent review | COMPLETED — REQUEST CHANGES | Review delivered to Hardik | n/a | Findings tracked via cleanup PR series |
+| Immediate cleanup PR | IN REVIEW | branch `chore/claude-review-immediate-cleanup` | `.gitignore`, `hardware/validation_results.md`, `esphome/door_side_rotary.yaml`, `esphome/bedside_gesture.yaml`, `docs/MASTER_EXECUTION_ROADMAP.md` | Hardik to review and merge |
+| Pre-migration cleanup PR | PLANNED | None | TBD branch `chore/pre-migration-repo-cleanup` | Open after immediate cleanup merges |
 | ELECROW physical validation | HARDWARE TEST PENDING | None | `hardware/validation_results.md` | Hardik to test |
 | Bedside APDS validation | HARDWARE TEST PENDING | None | `hardware/validation_results.md` | Hardik to test |
 | HA command-path validation | HARDWARE TEST PENDING | None | `hardware/validation_results.md` | Hardik to test |
-| VL53L4CD decision | BLOCKED | None | `docs/vl53l4cd_support_verification.md` | Hardik to decide |
+| VL53L4CD decision | BLOCKED | None | `docs/vl53l4cd_support_verification.md` | Hardik to decide (Option A/B/C); default proposal = Option B (defer to v2) |
 | No sensor fusion compliance | IN PROGRESS | Roadmap constraints | Multiple | Maintain constraint |
-| Secrets safety | IN PROGRESS | Roadmap constraints | Multiple | Maintain constraint |
+| Secrets safety | IN PROGRESS — `.gitignore` hardened in cleanup PR | Roadmap constraints | `.gitignore`, setup guide | Maintain constraint |
 
 ---
 

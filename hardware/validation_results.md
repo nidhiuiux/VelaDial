@@ -140,6 +140,34 @@ Gate lift requires: all subsystem rows above marked **PASS** (or **PARTIAL**
 with documented workaround approved by Hardik), all evidence items captured,
 and any pinout deltas resolved.
 
+### Step 15B gate — process waiver note (owner-acknowledged)
+
+> 📝 **Process waiver acknowledged by Hardik (owner).**
+>
+> PR #19 created a production-oriented door-side YAML
+> (`esphome/door_side_rotary.yaml`, full LVGL 3-page UI + wake-only-first
+> guards + preset/brightness/HA-state logic) **before** any physical Step 15B
+> validation was completed. This is accepted **only** as a pre-hardware draft
+> for compile-time and design-level review.
+>
+> This acceptance does **NOT** lift the Step 15B physical validation gate.
+> No physical PASS is claimed. All hardware rows in this document remain
+> **NOT TESTED**. The YAML's own header continues to mark it
+> `DRAFT — COMPILE PASSED / HARDWARE VALIDATION PENDING`.
+>
+> The gate continues to apply to:
+> - All further production-firmware-behavior changes to
+>   `esphome/door_side_rotary.yaml` (beyond compile/lint cleanups that do not
+>   change behavior).
+> - Any new production YAML under `esphome/`.
+> - Door-side sensor wiring (TSL2591 / SHT45) validation.
+> - LVGL UI sign-off as production-ready.
+> - VL53L4CD / VL53L0X / sensor fusion work (independently gated).
+>
+> The gate is **lifted only** when Hardik records physical Step 15B PASS
+> results (or owner-approved PARTIAL with workaround) in the subsystem table
+> above, with evidence captured, and explicitly signs off in this section.
+
 ---
 
 ## Phase 1 — Door-side ESP32-S3 Firmware Draft
