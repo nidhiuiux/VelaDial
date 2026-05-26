@@ -1,8 +1,34 @@
 # VL53L4CD ESPHome Support Verification
 
 **Date:** 2026-05-22  
-**Status:** Requires Decision  
+**Status:** **DECIDED — Option B (defer to v2)**, recorded 2026-05-25 by Hardik (owner).  
 **Project:** VelaDial  
+
+> **v1 decision (owner-recorded):** Hardik selected **Option B**. The
+> VL53L4CD-based hand-hold nightlight feature is **deferred from v1** and
+> moved to the v2 / future scope.
+>
+> v1 ships with **APDS-9960 standalone left/right gestures only** on the
+> bedside node. The VL53L4CD sensor remains physically present on the
+> bedside breadboard for future v2 work, but **no v1 firmware, ESPHome YAML,
+> Home Assistant logic, or UI element references VL53L4CD**.
+>
+> Sensor fusion (VL53L4CD arming/refining APDS-9960) also remains a v2 /
+> future enhancement — see `docs/03_App_Flow.md` § "Bedside sensor fusion".
+>
+> **VL53L0X fallback (Option C) is NOT approved.** No VL53L0X firmware,
+> wiring, or doc changes shall be added unless Hardik explicitly revisits
+> this decision.
+>
+> Re-opening this decision (e.g. for a v2 build with verified VL53L4CD
+> support) requires:
+> - A new dated `Status:` block in this section, AND
+> - A new follow-up PR that updates: this doc, `docs/01_PRD.md` bedside
+>   must-have list, `docs/05_Backend_Schema.md` bedside entities,
+>   `docs/MASTER_EXECUTION_ROADMAP.md` Section H, and any firmware/setup
+>   docs touched.
+
+
 
 ## 1. Purpose
 
@@ -47,9 +73,10 @@ Given that the VL53L4CD has already been purchased and remains the planned senso
 
 ## 8. Decision Needed from Hardik
 
-Please review the feasible options and provide a decision on the path forward:
+**RESOLVED 2026-05-25:** Hardik selected **Option B**.
+
 - [ ] **Option A:** Proceed with building a custom C++ component for the VL53L4CD.
-- [ ] **Option B:** Defer the ToF nightlight feature for v1 (ship bedside with APDS-9960 only).
+- [x] **Option B (SELECTED):** Defer the ToF nightlight feature for v1 (ship bedside with APDS-9960 only).
 - [ ] **Option C:** Approve the VL53L0X fallback and adjust thresholds.
 
 ## 9. Impact on Next Steps

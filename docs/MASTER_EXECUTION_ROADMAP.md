@@ -38,7 +38,7 @@ Knob press behavior varies by page:
 ### Bedside Controller
 The bedside controller utilizes APDS-9960 standalone gestures for v1. A left gesture turns the bedroom group off, while a right gesture turns the bedroom group on. A cooldown period prevents repeated triggers.
 
-The VL53L4CD standalone hand-hold nightlight is included in v1 only if its support path is verified and implemented. Crucially, VL53L4CD and APDS-9960 sensor fusion is reserved for v2 or future builds; there is absolutely no sensor fusion in v1.
+**VL53L4CD v1 decision — Option B (deferred), recorded 2026-05-25 by Hardik.** The VL53L4CD standalone hand-hold nightlight is **NOT** part of v1. The sensor remains physically present on the bedside breadboard for v2 / future use, but no v1 firmware, ESPHome YAML, Home Assistant logic, or UI element references it. APDS-9960 / VL53L4CD sensor fusion is independently reserved for v2 or future builds; there is absolutely no sensor fusion in v1. VL53L0X fallback (Option C) is **not** approved; do not introduce it without an explicit Hardik decision.
 
 ### System Path
 The control path flows from the ESPHome devices to Home Assistant running on a Raspberry Pi, then via LocalTuya over the local LAN to the `light.bedroom_group`.
@@ -137,7 +137,7 @@ The execution must strictly follow this sequence.
 | **Phase 4 — Full E2E setup and validation guide** | `docs/setup/full_e2e_setup_and_validation_guide.md` | Comprehensive testing plan. |
 | **Phase 5 — UI/UX guide integration plan** | `docs/ui/ux_guide_integration_plan.md` | Integrate Hardik-provided UI guide if available. |
 | **Phase 6 — Claude review package** | `docs/review/claude_review_package.md` | Prepare documentation for external review. |
-| **Phase 7 — Optional VL53L4CD decision/implementation path** | Implementation depends on decision | Only after Hardik chooses: custom component, defer ToF nightlight, or VL53L0X fallback. Do not make VL53L4CD block all other work. |
+| **Phase 7 — VL53L4CD path** | **RESOLVED 2026-05-25 — Option B (defer to v2)** | No v1 firmware/YAML/HA touches VL53L4CD. Re-opening the decision (for a v2 build) requires a new owner-recorded `Status:` block in `docs/vl53l4cd_support_verification.md` and a follow-up PR series updating PRD/Backend Schema/this roadmap. |
 
 ---
 
@@ -191,7 +191,7 @@ The following tests must be completed and recorded as PASS before the system is 
 | ELECROW physical validation | HARDWARE TEST PENDING | None | `hardware/validation_results.md` | Hardik to test |
 | Bedside APDS validation | HARDWARE TEST PENDING | None | `hardware/validation_results.md` | Hardik to test |
 | HA command-path validation | HARDWARE TEST PENDING | None | `hardware/validation_results.md` | Hardik to test |
-| VL53L4CD decision | BLOCKED | None | `docs/vl53l4cd_support_verification.md` | Hardik to decide (Option A/B/C); default proposal = Option B (defer to v2) |
+| VL53L4CD decision | DEFERRED v1 — Option B | Owner-recorded 2026-05-25 | `docs/vl53l4cd_support_verification.md`, `docs/01_PRD.md`, `docs/05_Backend_Schema.md` | v1 ships APDS-only bedside; revisit for v2 |
 | No sensor fusion compliance | IN PROGRESS | Roadmap constraints | Multiple | Maintain constraint |
 | Secrets safety | IN PROGRESS — `.gitignore` hardened in cleanup PR | Roadmap constraints | `.gitignore`, setup guide | Maintain constraint |
 
